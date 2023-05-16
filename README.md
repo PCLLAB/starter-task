@@ -2,6 +2,12 @@
 
 Create an simple experiment based on https://github.com/PCLLAB/LoP-Effect.
 
+Estimated time: many hours
+
+kyle available for help and questions
+
+please use all tools and resources available
+
 ## Initialize experiment
 
 Basically copy the files and structure from `LoP-Effect/E1`.
@@ -26,12 +32,67 @@ npx http-server -c-1
 # `-c-1` disables caching, see https://github.com/http-party/http-server
 ```
 
-Access the website via the link in your terminal. You will need to go to `/experiment.html` to see the experiment, or `/lab-start.html` if the experiment requires URL parameters specifiying a condition.
+Access the website via the link in your terminal. You will usually need to go to `/experiment.html` to see the experiment or `/lab-start.html` if the experiment requires certain parameters.
 
-`LoP-Effect` has a parameter called `Version` and you'll see in the url something like `...experiment.html?Version=1`. URL parameters like these can be accessed in `experiment.js` to choose how the experiment should work.
+`LoP-Effect` has a parameter `Version` so the final url is something like `/experiment.html?Version=1`
 
 ## Experiment details
 
-You should have all the same files as `LoP-Effect/E1` in your folder. You can delete everything in your `experiment.js`. You will be building this from scratch to understand how it works.
+You should have all the same files as `LoP-Effect/E1` in your folder. You can delete everything in your `experiment.js` and add stuff one by one to see how it work.
 
-Feel free to copy sections from the existing `experiment.js`, but many parts will change.
+Here is a stripped down example.
+
+```js
+const files = {
+  arbitraryName: "path to JSON file",
+};
+
+class Experiment {
+  constructor() {
+    this.timeline = [];
+
+    //calls this.loadMaterials()
+  }
+
+  loadMaterials() {
+    // loads JSON files and makes them available as fields
+    //
+    // calls this.buildTimeline() and this.run()
+  }
+
+  buildTimeline() {
+    const instructionTrial = {
+      type: "pcllab-core",
+      stimuli: [this.arbitraryName["field in json file"]],
+      show_button: true,
+      button_text: "Continue",
+      response_count: 0,
+      minimum_time: 7000,
+    };
+
+    this.timeline.push(instructionTrial);
+  }
+
+  run() {
+    // start jsPsych with the built timeline
+    //
+    // once finished, sends a post request with experiment data to store in backend
+    //
+    // EACH EXPERIMENT HAS A UNIQUE URL TO POST DATA TO, CREATE ONE IN JARVIS
+  }
+}
+```
+
+You can strip out anything related to URL paramters, versions, conditons. There is just one version for this task.
+
+There should be an instruction trial first.
+![Instruction](instruction.png)
+
+Your experiment should use `"Materials/Practice.json"` instead of the `"Materials/Order1.json"` and do basically the same thing, show a question, followed by the image and two buttons to respond for each item.
+
+![Question](question.png)
+![Answer](answer.png)
+
+After, the data should be sent to and visible in https://jarvis.psych.purdue.edu/
+
+- Create a new "experiment" using the + icon and use the new data collection URL instead of the URL already in LoP-Effect
