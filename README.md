@@ -95,4 +95,4 @@ Your experiment should use `"Materials/Practice.json"` instead of the `"Material
 
 After, the data should be sent to and visible in https://jarvis.psych.purdue.edu/
 
-- Create a new "experiment" using the + icon and use the new data collection URL instead of the URL already in LoP-Effect
+- Create a new "experiment" using the + icon and use the new data collection URL instead of the URL already in LoP-Effect. This is to make sure that the data is saved at a separate place from the experiment data. You could name the new experiment "Programmer Starter Task_Lastname". After creating a new experiment on Jarvis, you will see a button that says "generate". From there you will be able to see the experiment ID and an URL. You will replace the ID in the saveData() function, and the replace the URL in the run() function at the end of the experiment.
