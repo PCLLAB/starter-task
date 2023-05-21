@@ -1,0 +1,303 @@
+<!doctype html>
+<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+<meta content="utf-8" http-equiv="encoding">
+<html>
+<head>
+	<title>Remember the words</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script> 
+
+	<!-- Import the core library -->
+	<script src="jspsych.js"></script> 
+	<script src="seedrandom.js"></script> 
+	<script src="supportFunctions.js"></script> 
+
+	<!-- Import the style sheets -->
+	<link  href="css/pcllab.css" rel="stylesheet" type="text/css"></link>
+	<link  href="css/jspsych.css" rel="stylesheet" type="text/css"></link>
+	
+ 	<!-- Seeded random number generation -->
+	<script src="//cdnjs.cloudflare.com/ajax/libs/seedrandom/2.4.0/seedrandom.min.js"></script>
+
+	<!-- Optional plugins -->
+	<script src="plugins/jspsych-text.js"></script> <!-- Display text on screen -->
+	<script src="plugins/jspsych-study-word.js"></script>
+	<script src="plugins/jspsych-html.js"></script>
+	<script src="plugins/jspsych-htmlTurkCode.js"></script>
+	<script src="plugins/jspsych-survey-text.js"></script>
+	<script src="plugins/jspsych-call-function.js"></script>
+	<script src="plugins/jspsych-free-recall.js"></script>
+	<script src="plugins/jspsych-single-stim.js"></script>
+	<script src="plugins/jspsych-instructions.js"></script>
+
+
+</head>
+<body> 
+	<div id="jspsych-target"></div>
+
+</body>
+
+<script>
+	// // FUNCTIONS THAT WE NEED
+	var alphaOnly = /[a-z]/g;
+	var subId = jsPsych.data.getURLVariable('workerId');
+	var week = jsPsych.data.getURLVariable('week');
+	var cond = jsPsych.data.getURLVariable('condition');
+	console.log(cond)
+
+	if(cond == 1 | cond == 3){
+		var exptCond = 1;
+	} else {
+		var exptCond = 2;
+	};
+
+	var timeStamp = Math.floor(Date.now() / 1000);
+	var dt = new Date();
+	var utcDate = dt.toUTCString();
+
+	// PARAMETERS FOR DEBUGGING OR FULL EXPERIMENT
+	var experiment = [];	
+	if(subId == '999'){
+		var num_study = 4; 
+		var num_lists = 4;
+		var num_items = num_study*num_lists;
+	    var study_time = 250;
+	    var isi = 100; 
+	    var delay = 5000;
+	    // ?assignmentId=999&hitId=999&turkSubmitTo=999&workerId=999 //Query strings for mturk
+	    window.alert('Debugging mode!')
+	} else {
+		var num_study = 5; 
+		var num_lists = 5;
+		var num_items = num_study*num_lists;
+	    var study_time = 3000;
+	    var isi = 500; 
+	    var delay = 15000;
+	};
+
+	var seed = subId.hashCode();
+	Math.seedrandom(seed);
+
+	if(week == 2){
+		if(cond == 1 | cond == 4){
+			var stim = jsPsych.randomization.shuffle(readStim('stimuli/stimSetA.json'))
+		} else {
+			var stim = jsPsych.randomization.shuffle(readStim('stimuli/stimSetB.json'))
+		}
+	console.log(stim);
+	} else if(week == 4){
+		if(cond == 1 | cond == 4){
+			var stim = jsPsych.randomization.shuffle(readStim('stimuli/stimSetB.json'))
+			// console.log("test");
+		} else {
+			var stim = jsPsych.randomization.shuffle(readStim('stimuli/stimSetA.json'))
+		}
+	console.log(stim);
+	};
+
+	// SPECIFY STIMULI
+	var study_all = [];
+	for(var i = 0; i < num_items; i++){
+		item = stim[i].word;
+		study_all.push([item]);
+	}
+
+	// Splice the array into num_study lists
+	var study_array = [];
+	while(study_all.length) study_array.push(study_all.splice(0, num_study));
+
+    // Wait for the experimenter's instructions
+    var wait_block = {
+    	    type: 'single-stim',
+    		stimulus: 'img/stop.png',
+    		choices: ['mouse'],
+    		prompt: "<p><font size = '5'><center>Wait for instructions from the experimenter</center></font>"
+    }
+    experiment.push(wait_block);
+
+    // Study loop for the lists
+    for(var list_idx = 0; list_idx < num_lists; list_idx++){
+		var block_start = {
+				 		type: "instructions",
+				 		pages: ["<p><font size = '5'><br>Beginning List " + (list_idx + 1) + ".</p><p>Click Continue to begin.</font></p>"],
+				 		allow_backward: false,
+				 		show_clickable_nav: true
+				 		
+				 	};
+	 	experiment.push(block_start);
+
+		for(var study_idx = 0; study_idx < num_study; study_idx++){
+
+			var study_block = {
+				type: "study-word",
+				is_html: true,
+				choices: -1,
+				timing_response: study_time,
+				timing_post_trial: isi,
+				prompt: "",
+				timeline: [
+				{stimulus: study_array[list_idx][study_idx][0]}
+				],
+				data: {
+						phase: 'study',
+					    list: list_idx+1,
+					    itemPos: study_idx+1,
+						}
+			};
+			experiment.push(study_block);
+		};
+
+    	if(exptCond == 1){	
+			// Retrieval practice condition
+
+			// The experiment will read the instructions out loud the first time, but a shorter version will appear on screen thereafter.
+			if(list_idx == 0){
+				var wait_block = {
+					type: "instructions",
+					pages: ["<br><p><font size = '5'>Please try try to recall the words from the list that you just studied. Type them in one word at a time and press the ENTER key to submit a word. When you are done, press the CONTINUE button at the bottom of the screen.</p><p>Click Continue to begin.</p></font>"],
+				 	allow_backward: false,
+				 	show_clickable_nav: true				
+			    }
+			    experiment.push(wait_block);
+			} else {
+
+				var recall_instructions = {
+					type: "instructions",
+					pages: ["<p><font size = '5'><br>Click Continue to begin recalling List " + (list_idx + 1) + ".</font></p>"],
+				 	allow_backward: false,
+				 	show_clickable_nav: true	
+				};
+				experiment.push(recall_instructions);
+			}
+				
+			var recall_task = {
+				type: 'free-recall',
+				instructions: "Please type in the words you remember from the list you just saw.",
+				data: {
+					phase: 'interveningTest',
+					list: list_idx+1
+				}				
+			};
+			experiment.push(recall_task);
+
+		} else {
+			
+			var distractor_instructions_block = {
+				type: "instructions",
+				pages: ["<font size = '5'><p><br>Please answer these math questions.</p><p>Click Continue to begin</p></font>"],
+				allow_backward: false,
+				show_clickable_nav: true	
+
+			};
+			experiment.push(distractor_instructions_block);
+
+			var numTrials = 3; var distractStim = [];	var distractTotal = 0
+			for(var i = 0; i < numTrials; i++){
+				var num1 = [Math.floor((Math.random() * 9) + 1)];
+				var num2 = [Math.floor((Math.random() * 9) + 1)];
+				var numTotal = parseInt(num1) + parseInt(num2);
+				distractStim.push({num1: [num1], num2: [num2], total: [numTotal]});
+			};
+			
+			for(var dist_idx = 0; dist_idx < numTrials; dist_idx++){
+				var math_task = {
+					type: "survey-text",
+					questions: ["<p><font size = '5'><br>What is "+ distractStim[dist_idx].num1 + " + " + distractStim[dist_idx].num2 + " ?</font></p>"],
+					data: {
+						phase: 'distractor',
+						list: list_idx+1
+					}
+				}
+				experiment.push(math_task);
+
+				/*
+				var math_question = {
+					type: "survey-text",
+					questions: ["<font size = '5'><br>What is the total?</font>"],
+					data: {
+						phase: 'distractor',
+						list: list_idx+1
+					}
+				};
+				experiment.push(math_question);
+				*/
+				
+				var math_results = {
+					type: "instructions",
+					pages: ["<p><font size = '5'><br>The total was " + distractStim[dist_idx].total + ".</p> <p>Click Continue when you are ready.</p></font>"],
+				 	allow_backward: false,
+				 	show_clickable_nav: true,
+					data: {
+						phase: 'distractor',
+						list: list_idx+1
+					}
+				};
+				experiment.push(math_results);
+			};		
+		}
+	};
+
+    var wait_block = {
+	    type: 'single-stim',
+		stimulus: 'img/stop.png',
+		choices: ['mouse'],
+		prompt: "<p><font size = '5'><center>Wait for instructions from the experimenter</center></font>"
+	    }
+    experiment.push(wait_block);
+
+	var final_recall_task = {
+		type: 'free-recall',
+		instructions: "Please recall <b>all</b> the words from <b>all</b> of the lists you studied.",
+		data: {
+			phase: 'finalRecall',
+		}	
+	};
+	experiment.push(final_recall_task);
+
+	jsPsych.data.addProperties({
+		subNum: subId,
+		condBlock: cond,
+		cond: exptCond,
+		week: week,
+		timeStamp: utcDate,
+		experiment: 'E1c_5x5_SchoolVersion',
+		seed: seed,
+	});
+
+	// To write to a server, you need to specify a table in the saveMySQL support function (see supportFunctions.js)
+	var save_data_block = {
+		type: 'call-function',
+		timing_post_trial: 0,
+		func: function(){
+			jsPsych.data.addProperties({completed: true}), 
+			// saveCSV("filename.csv", jsPsych.data.dataAsCSV())
+			saveMySQL(jsPsych.data.getData())
+		// jsPsych.data.displayData();
+		}
+	};	
+	experiment.push(save_data_block);
+
+    var wait_block = {
+    	    type: 'single-stim',
+    		stimulus: 'img/robot.png',
+    		choices: ['mouse'],
+    		prompt: "<div id='great'> Great job!<br>Thanks for helping us out today!<br>If you are all done, please sit quietly until everyone else is finished.</div>"
+    }
+    experiment.push(wait_block);
+
+	jsPsych.init({
+		display_element: $('#jspsych-target'),
+		// show_progress_bar: true,
+		timeline: experiment,
+		// show_progress_bar: true,
+		on_finish: function(data){
+			// jsPsych.data.displayData();
+			// jsPsych.data.addProperties({completed: true});
+			// saveCSV("filename.csv", jsPsych.data.dataAsCSV());
+			// saveMySQL(jsPsych.data.getData());
+			// jsPsych.data.displayData('csv');
+		}
+	});
+
+	</script>
+
+	</html>

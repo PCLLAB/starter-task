@@ -1,0 +1,599 @@
+	<!doctype html>
+	<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+	<meta content="utf-8" http-equiv="encoding">
+	<html>
+	<head>
+		<title>Memory for Words</title>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script> 
+
+		<!-- Import the core library -->
+		<script src="jspsych.js"></script> 
+		<script src="seedrandom.js"></script> 
+		<script src="supportFunctions.js"></script> 
+
+		<!-- Import the style sheets -->
+		<link  href="css/pcllab.css" rel="stylesheet" type="text/css"></link>
+		<link  href="css/jspsych.css" rel="stylesheet" type="text/css"></link>
+		
+		<!-- Seeded random number generation -->
+		<script src="//cdnjs.cloudflare.com/ajax/libs/seedrandom/2.4.0/seedrandom.min.js"></script>
+
+		<!-- Optional plugins -->
+		<script src="plugins/jspsych-text.js"></script> <!-- Display text on screen -->
+		<script src="plugins/jspsych-study-word.js"></script>
+		<script src="plugins/jspsych-html.js"></script>
+		<script src="plugins/jspsych-htmlTurkCode.js"></script>
+		<script src="plugins/jspsych-survey-text.js"></script>
+		<script src="plugins/jspsych-call-function.js"></script>
+		<script src="plugins/jspsych-study-pair.js"></script>
+
+
+	</head>
+	<body> 
+		<div id="jspsych-target"></div>
+	</body>
+
+	<script>
+		// // FUNCTIONS THAT WE NEED
+		var alphaOnly = /[a-z]/g;
+		// var turkInfo = jsPsych.turk.turkInfo();
+		var subjNum = jsPsych.data.getURLVariable('id');	
+
+		// PARAMETERS FOR DEBUGGING OR FULL EXPERIMENT
+		var experiment = [];	
+		if(subjNum == '999'){
+			var num_study = 16; 
+			var num_lists = 3;
+			var num_testSR = num_study;
+			var num_testAR = num_study;
+			var num_items = (num_study*num_lists)*2;
+			var study_time = 200;
+			var isi = 50; 
+			var delay = 5000;
+		    // ?assignmentId=999?hitId=999?turkSubmitTo=999?workerId=999 //Query strings for mturk
+		    // https://yourschool.qualtrics.com/SE/?SID=SV_b9ZD41hMZaqE&id=%SURVEY_CODE%
+		    var exptCond = Math.floor(Math.random()*4)+1;
+		    window.alert('Debugging mode!')
+		} else {
+			var num_study = 80; // This needs to be divisible by 4 & 8;
+			var num_lists = 3;
+			var num_items = num_study*num_lists;
+			var num_testSR = num_study;
+			var num_testAR = num_study;
+			var study_time = 3000;
+			var isi = 500; 
+			var delay = 60000;
+			Math.seedrandom(subjNum);
+			var exptCond = Math.floor(Math.random()*4)+1;
+		};
+
+		// window.alert(getQueryVariable("workerId"));
+
+		var timeStamp = Math.floor(Date.now() / 1000);
+		var dt = new Date();
+		var utcDate = dt.toUTCString();
+		// var subjNum = turkInfo.workerID;
+		 //Choose a number between 1 and 4
+		// exptCond = 1: SR-SR; exptCond = 2: SR-AR; exptCond = 3: AR-SR; exptCond = 4: AR-AR
+		if(exptCond == 1){
+			var trialOrder = [1,1,1]; //SR-SR
+		} else if(exptCond == 2){
+			var trialOrder = [1,1,2]; //SR-AR
+		} else if(exptCond == 3){
+			var trialOrder = [2,2,1]; //AR-SR
+		} else if (exptCond == 4){
+			var trialOrder = [2,2,2]; //AR-AR
+		}
+
+		// SPECIFY STIMULI
+		var mf_stim = jsPsych.randomization.shuffle(readStim('stimuli/mfWords.json'));
+		var hcvhf_stim = jsPsych.randomization.shuffle(readStim('stimuli/hcvhfWords.json'));
+		var hcvlf_stim = jsPsych.randomization.shuffle(readStim('stimuli/hcvlfWords.json'));
+		var lcvhf_stim = jsPsych.randomization.shuffle(readStim('stimuli/lcvhfWords.json'));
+		var lcvlf_stim = jsPsych.randomization.shuffle(readStim('stimuli/lcvlfWords.json'));
+
+		// MAKE SOME LISTS
+		// Start with the training lists
+
+		// Make the first two study lists
+		var study1 = []; var study2 = [];
+		for(var i = 0; i < num_study; i++){
+			item1 = mf_stim[i].word; 
+			item2 = mf_stim[i+num_study].word; 
+			study1.push({word1: [item1], word2: [item2], list: ['1'], trialType: ['target'], stimType: ['1'], cvCond: ['0'], wfCond: ['0']});
+
+			item3 = mf_stim[i+(num_study*2)].word; 
+			item4 = mf_stim[i+(num_study*3)].word; 
+			study2.push({word1: [item3], word2: [item4], list: ['2'], trialType: ['target'], stimType: ['1'], cvCond: ['0'], wfCond: ['0']});
+		}
+
+		// Make targets and foils for the first two study lists
+		// var target1 = []; var target2 = []; var foil1 = []; var foil2 = []; list1 = []; list2 = [];
+		var srTest1 = []; var srTest2 = [];
+		for(var i = 0; i < num_study/2; i++){
+			item1 = mf_stim[i].word; // Targets from List 1
+			item2 = mf_stim[i+(num_study*4)].word; // Novel Foils for Test 1
+						
+			srTest1.push({word: [item1], list: ['1'], trialType: ['target'], stimType: ['1'], cvCond: ['0'], wfCond: ['0'], srTest: ['1'], arTest: ['0']});
+			srTest1.push({word: [item2], list: ['1'], trialType: ['foil'], stimType: ['1'], cvCond: ['0'], wfCond: ['0'], srTest: ['1'], arTest: ['0']});
+			
+			item3 = mf_stim[i+(num_study*2)].word; // Targets from List 2
+			item4 = mf_stim[i+(num_study*4.5)].word; // Novel Foils for Test 2
+
+			srTest2.push({word: [item3], list: ['2'], trialType: ['target'], stimType: ['1'], cvCond: ['0'], wfCond: ['0'], srTest: ['1'], arTest: ['0']});
+			srTest2.push({word: [item4], list: ['2'], trialType: ['foil'], stimType: ['1'], cvCond: ['0'], wfCond: ['0'], srTest: ['1'], arTest: ['0']});
+			
+		}	
+
+
+		// Make the third study list where CV is manipulated
+		var study3 = [];
+		for(var i = 0; i < (num_study/4); i++){	
+			item1 = hcvhf_stim[i].word;
+			item2 = hcvhf_stim[i+num_study/4].word;
+			study3.push({word1: [item1], word2: [item2], list: ['3'], trialType: ['target'], stimType: ['2'], cvCond: ['1'], wfCond: ['1']});
+
+			item3 = hcvlf_stim[i].word;
+			item4 = hcvlf_stim[i+num_study/4].word;
+			study3.push({word1: [item3], word2: [item4], list: ['3'], trialType: ['target'], stimType: ['3'], cvCond: ['1'], wfCond: ['2']});	
+
+			item5 = lcvhf_stim[i].word;
+			item6 = lcvhf_stim[i+(num_study/4)].word;
+			study3.push({word1: [item5], word2: [item6], list: ['3'], trialType: ['target'], stimType: ['4'], cvCond: ['2'], wfCond: ['1']});
+
+			item7 = lcvlf_stim[i].word;
+			item8 = lcvlf_stim[i+num_study/4].word;
+			study3.push({word1: [item7], word2: [item8], list: ['3'], trialType: ['target'], stimType: ['5'], cvCond: ['2'], wfCond: ['2']});
+		}
+
+		// Make foils for the third study list
+		var srTest3 = [];
+		for(var i = 0; i < (num_study/8); i++){
+			item1 = hcvhf_stim[i].word;
+			srTest3.push({word: [item1], list: ['3'], trialType: ['target'], stimType: ['2'], cvCond: ['1'], wfCond: ['1'], srTest: ['1'], arTest: ['0']});		
+
+			item2 = hcvlf_stim[i].word;
+			srTest3.push({word: [item2], list: ['3'], trialType: ['target'], stimType: ['3'], cvCond: ['1'], wfCond: ['2'], srTest: ['1'], arTest: ['0']});
+
+			item3 = lcvhf_stim[i].word;
+			srTest3.push({word: [item3], list: ['3'], trialType: ['target'], stimType: ['4'], cvCond: ['2'], wfCond: ['1'], srTest: ['1'], arTest: ['0']});
+
+			item4 = lcvlf_stim[i].word;
+			srTest3.push({word: [item4], list: ['3'], trialType: ['target'], stimType: ['5'], cvCond: ['2'], wfCond: ['2'], srTest: ['1'], arTest: ['0']});
+
+			item5 = hcvhf_stim[i + (num_study/4)*2].word;
+			srTest3.push({word: [item5], list: ['3'], trialType: ['foil'], stimType: ['2'], cvCond: ['1'], wfCond: ['1'], srTest: ['1'], arTest: ['0']});
+			
+			item6 = hcvlf_stim[i + (num_study/4)*2].word;
+			srTest3.push({word: [item6], list: ['3'], trialType: ['foil'], stimType: ['3'], cvCond: ['1'], wfCond: ['2'], srTest: ['1'], arTest: ['0']});
+			
+			item7 = lcvhf_stim[i + (num_study/4)*2].word;
+			srTest3.push({word: [item7], list: ['3'], trialType: ['foil'], stimType: ['4'], cvCond: ['2'], wfCond: ['1'], srTest: ['1'], arTest: ['0']});
+			
+			item8 = lcvlf_stim[i + (num_study/4)*2].word;
+			srTest3.push({word: [item8], list: ['3'], trialType: ['foil'], stimType: ['5'], cvCond: ['2'], wfCond: ['2'], srTest: ['1'], arTest: ['0']});
+		}
+
+		// Make the test items for associative recognition
+		var arTest1 = []; var arTest2 = [];
+		for(var i = 0; i < num_study/2; i++){
+			// Test 1
+			item1 = mf_stim[i].word; 
+			item2 = mf_stim[i+num_study].word; 
+			arTest1.push({word1: [item1], word2: [item2], list: ['1'], trialType: ['target'], stimType: ['1'], cvCond: ['0'], wfCond: ['0'], srTest: ['0'], arTest: ['1']});
+
+			item3 = mf_stim[i+(num_study*0.5)].word;
+			if(i < (num_study/2)-1){
+				item4 = mf_stim[i+((num_study*1.5)+1)].word;
+			} else {
+				item4 = mf_stim[num_study*1.5].word;
+			}
+			arTest1.push({word1: [item3], word2: [item4], list: ['1'], trialType: ['foil'], stimType: ['1'], cvCond: ['0'], wfCond: ['0'], srTest: ['0'], arTest: ['1']});
+
+			// Test 2
+			item5 = mf_stim[i+num_study*2].word; 
+			item6 = mf_stim[i+num_study*3].word; 
+			arTest2.push({word1: [item5], word2: [item6], list: ['2'], trialType: ['target'], stimType: ['1'], cvCond: ['0'], wfCond: ['0'], srTest: ['0'], arTest: ['1']});
+
+			item7 = mf_stim[i+(num_study*2.5)].word;
+			if(i < (num_study/2)-1){
+				item8 = mf_stim[i+((num_study*3.5)+1)].word;
+			} else {
+				item8 = mf_stim[num_study*3.5].word;
+			}
+			arTest2.push({word1: [item7], word2: [item8], list: ['2'], trialType: ['foil'], stimType: ['1'], cvCond: ['0'], wfCond: ['0'], srTest: ['0'], arTest: ['1']});
+		}
+
+		var arTest3 = [];
+		for(var i = 0; i < (num_study/8); i++){
+			// HCVHF
+			item1 = hcvhf_stim[i].word;
+			item2 = hcvhf_stim[i+num_study/4].word;
+			arTest3.push({word1: [item1], word2: [item2], list: ['3'], trialType: ['target'], stimType: ['2'], cvCond: ['1'], wfCond: ['1'], srTest: ['0'], arTest: ['1']});
+
+			item3 = hcvhf_stim[i+num_study/8].word;
+			if(i < (num_study/8)-1){
+				item4 = hcvhf_stim[i+((num_study*0.375)+1)].word;
+			} else {
+				item4 = hcvhf_stim[num_study*0.375].word;
+			}
+			arTest3.push({word1: [item3], word2: [item4], list: ['3'], trialType: ['foil'], stimType: ['2'], cvCond: ['1'], wfCond: ['1'], srTest: ['0'], arTest: ['1']});
+
+			// HCVLF
+			item5 = hcvlf_stim[i].word;
+			item6 = hcvlf_stim[i+num_study/4].word;
+			arTest3.push({word1: [item5], word2: [item6], list: ['3'], trialType: ['target'], stimType: ['3'], cvCond: ['1'], wfCond: ['2'], srTest: ['0'], arTest: ['1']});
+
+			item7 = hcvlf_stim[i+num_study/8].word;
+			if(i < (num_study/8)-1){
+				item8 = hcvlf_stim[i+((num_study*0.375)+1)].word;
+			} else {
+				item8 = hcvlf_stim[num_study*0.375].word;
+			}
+			arTest3.push({word1: [item7], word2: [item8], list: ['3'], trialType: ['foil'], stimType: ['3'], cvCond: ['1'], wfCond: ['2'], srTest: ['0'], arTest: ['1']});
+
+			// LCVHF
+			item9 = lcvhf_stim[i].word;
+			item10 = lcvhf_stim[i+num_study/4].word;
+			arTest3.push({word1: [item9], word2: [item10], list: ['3'], trialType: ['target'], stimType: ['4'], cvCond: ['2'], wfCond: ['1'], srTest: ['0'], arTest: ['1']});
+
+			item11 = lcvhf_stim[i+num_study/8].word;
+			if(i < (num_study/8)-1){
+				item12 = lcvhf_stim[i+((num_study*0.375)+1)].word;
+			} else {
+				item12 = lcvhf_stim[num_study*0.375].word;
+			}
+			arTest3.push({word1: [item11], word2: [item12], list: ['3'], trialType: ['foil'], stimType: ['4'], cvCond: ['2'], wfCond: ['1'], srTest: ['0'], arTest: ['1']});
+
+			// LCVHF
+			item13 = lcvlf_stim[i].word;
+			item14 = lcvlf_stim[i+num_study/4].word;
+			arTest3.push({word1: [item13], word2: [item14], list: ['3'], trialType: ['target'], stimType: ['5'], cvCond: ['2'], wfCond: ['2'], srTest: ['0'], arTest: ['1']});
+
+			item15 = lcvlf_stim[i+num_study/8].word;
+			if(i < (num_study/8)-1){
+				item16 = lcvlf_stim[i+((num_study*0.375)+1)].word;
+			} else {
+				item16 = lcvlf_stim[num_study*0.375].word;
+			}
+			arTest3.push({word1: [item15], word2: [item16], list: ['3'], trialType: ['foil'], stimType: ['5'], cvCond: ['2'], wfCond: ['2'], srTest: ['0'], arTest: ['1']});						
+		}
+
+		// // EXPERIMENT BLOCKS
+		// // /* Check for a mobile device */
+		if(checkMobile() == true){
+			var nomobile_block = {
+				"type": "html",
+				"url": "nomobile.html"		
+			};
+			experiment.push(nomobile_block);			
+		}
+
+		// // // /* Check for mTurk ID */
+		if(subjNum == ''){
+			var consent_block = {
+				type: 'html',
+				force_refresh: true,
+				"url": "consentPreview.html",    		
+				cont_btn: 'start',
+				check_fn: check_consent
+			}
+		} else {
+			var consent_block = {
+				type: 'html',
+				force_refresh: true,
+				url: 'consent.html',
+				cont_btn: 'start',
+				check_fn: check_consent
+			};
+		};
+		experiment.push(consent_block);
+
+		var demo_questions = ["What is your age:", "What is your gender:", "Is English your first language (Y/N)?:"];
+		var demo_block ={
+			type: 'survey-text',
+			questions: demo_questions,
+			preamble: ["<b><font size = 6> Demographics</font></b>"],
+			on_finish: function(trial_data){
+				jsPsych.data.addDataToLastTrial({phase: 'demographics'});
+			}
+		};
+		experiment.push(demo_block);
+
+	 //    // // /* Instructions Block */
+	 var nav_instructions_block = {
+	 	type: "text",
+	 	text: "<font size = '5'><p>Throughout the experiment, you will see a progress bar at the top of the screen to indicate your progress in the experiment.</p><p>At the end of the experiment, there will be a few final questions for you to answer. You will then receive credit for your participation.</p><p>Please do not write any of the study materials down, do not click the back button on your browser, and do not open other tabs or browsers during the experiment.</p><p>Today's experiment will be divided into multiple sections. Please follow the instructions specific to that section</p><p>Press any key to continue.</p></font>"
+	 };
+	 experiment.push(nav_instructions_block);
+
+	 var study_instructions_block = {
+	 	type: "text",
+	 	text: "<font size = '5'><p>Over the course of the experiment you will study a list of pairs of items. Your memory will then be tested either for the pairs of items or the individual items. There will be multiple study-test sessions. You will have " + (study_time/1000) + " seconds to study the pairs of items.</p><p>Press any key to begin.</p></font>"
+	 };
+	 experiment.push(study_instructions_block);
+
+
+	 /* Study Block */	
+	 for(var list_idx = 0; list_idx < num_lists; list_idx++){
+
+	 	var block_start = {
+	 		type: "text",
+	 		text: ["<p><font size = '5'>Beginning List " + (list_idx + 1) + " of " + num_lists +".</p><p>Press any key to continue.</font></p>"]
+	 	};
+	 	experiment.push(block_start);
+
+	    	// Create a randomized study index
+	    	var studyRand_temp = [];    
+	    	for(var i = 0; i < num_study; i++){
+	    		var num1 = i;
+	    		studyRand_temp.push([num1]);
+	    	}
+	    	var studyRand_Idx = jsPsych.randomization.shuffle(studyRand_temp);
+
+	    	for(var i = 0; i < num_study; i++){
+	    		if(isOdd(studyRand_Idx[i])){
+	    			var	LRpos = 1
+	    		} else {
+	    			var LRpos = 2
+	    		}
+	    		var pair_study_block = {
+	    			type: 'study-pair',
+	    			is_html: true,
+	    			stimulus_a: eval("study" + (list_idx+1) + "[studyRand_Idx[i]].word1")[0], 
+	    			stimulus_b: eval("study" + (list_idx+1) + "[studyRand_Idx[i]].word2")[0], 
+	    			choices: -1,
+	    			timing_response: study_time,
+	    			timing_post_trial: isi,
+	    			LRposition: LRpos,
+	    			prompt: "",
+	    			data: {
+	    				phase: "study",
+	    				list: eval("study" + (list_idx+1) + "[studyRand_Idx[i]].list")[0],
+	    				trialType: eval("study" + (list_idx+1) + "[studyRand_Idx[i]].trialType")[0], 
+	    				stimType: eval("study" + (list_idx+1) + "[studyRand_Idx[i]].stimType")[0],
+	    				cvCond: eval("study" + (list_idx+1) + "[studyRand_Idx[i]].cvCond")[0], 
+	    				wfCond: eval("study" + (list_idx+1) + "[studyRand_Idx[i]].wfCond")[0],
+	    			}
+	    		};
+	    		experiment.push(pair_study_block);
+	    		
+	    	}
+
+			// // Run a distractor task
+			var distractor_instructions_block = {
+				type: "text",
+				text: "<font size = '5'><p>In this next task, you will be presented with a series of numbers in sequence. "+ "Add them up as they are presented, then give the final sum.</p>" + "<p>Press any key to begin.</p></font>"
+			};
+			experiment.push(distractor_instructions_block);
+
+			var numTrials = delay/(study_time+isi); var distractStim = [];	var distractTotal = 0
+			for(var i = 0; i < numTrials; i++){
+				var num1 = [Math.floor((Math.random() * 9) + 1)];
+				var distractTotal = distractTotal + parseInt(num1);
+				distractStim.push({stimulus: num1});
+			};
+			
+			for(var dist_idx = 0; dist_idx < numTrials; dist_idx++){
+				var math_task = {
+					type: "study-word",
+					is_html: true,
+					choices: -1,
+					timing_response: study_time,
+					timing_post_trial: isi,
+					prompt: "",
+					timeline: [{stimulus: distractStim[dist_idx].stimulus[0]}],
+					data: {phase: 'distractor'}
+				}
+				experiment.push(math_task);
+			};
+
+			var math_question = {
+				type: "survey-text",
+				questions: ["<font size = '5'>What is the total?</font>"],
+				data: {phase: 'distractor'}
+			};
+			experiment.push(math_question);
+
+			var math_results = {
+				type: "text",
+				text: ["<p><font size = '5'>The total was " + distractTotal + ".</p> <p>Press any key to continue.</font></p>"],
+				data: {phase: 'distractor'}
+			};
+			experiment.push(math_results);
+
+
+			if(trialOrder[list_idx] == 1){
+
+				// Create a randomized test index
+				var testRand_temp = [];    
+				for(var i = 0; i < num_testSR; i++){
+					var num1 = i;
+					testRand_temp.push([num1]);
+				}
+				var testRand_Idx = jsPsych.randomization.shuffle(testRand_temp);
+
+				// SR Test
+				var test_instructions = {
+					type: "text",
+					text: "<font size = '5'><p>Your memory will now be tested for the <b>individual items</b> that you just studied.</p><p>On each trial you will be shown a word and asked to decided whether the word was studied on the most recent list.</p><p>Press any key to begin.</p></font>"
+				};
+				experiment.push(test_instructions);
+
+				for(var i = 0; i < num_testSR; i++){
+					var item_test_block = {
+						type: 'study-word',
+						is_html: true,
+						choices: ['q','p'],
+						timing_response: [-1],
+						timing_post_trial: isi,
+						prompt: "<font size = '5'><center><p>Did this item appear on the most recent list?</p><p>Press 'Q' to indicate <i>Yes</i> and 'P' to indicate <i>No</i>.</p></center></font>",
+						timeline: [{stimulus: eval("srTest" + (list_idx+1) + "[testRand_Idx[i]].word")[0]}],
+						data: {
+							phase: "test",
+							list: eval("srTest" + (list_idx+1) + "[testRand_Idx[i]].list")[0],
+							trialType: eval("srTest" + (list_idx+1) + "[testRand_Idx[i]].trialType")[0], 
+							stimType: eval("srTest" + (list_idx+1) + "[testRand_Idx[i]].stimType")[0],
+							cvCond: eval("srTest" + (list_idx+1) + "[testRand_Idx[i]].cvCond")[0], 
+							wfCond: eval("srTest" + (list_idx+1) + "[testRand_Idx[i]].wfCond")[0],
+							// srCond: eval("srTest" + (list_idx+1) + "[testRand_Idx[i]].srTest")[0],
+							// arCond: eval("srTest" + (list_idx+1) + "[testRand_Idx[i]].arTest")[0],
+						}
+
+					};
+					experiment.push(item_test_block);
+				};
+			} else if (trialOrder[list_idx] == 2){
+				// Create a randomized test index
+				var testRand_temp = [];    
+				for(var i = 0; i < num_testAR; i++){
+					var num1 = i;
+					testRand_temp.push([num1]);
+				}
+				var testRand_Idx = jsPsych.randomization.shuffle(testRand_temp);	
+
+
+				// AR Test
+				var test_instructions = {
+					type: "text",
+					text: "<font size = '5'><p>Your memory will now be tested for the pairs of items that appeared on the screen together</p><p>On each trial you will be shown two words and asked to decided whether the pair of items was studied <b>together</b> on the most recent list.</p><p>Press any key to begin.</p></font>"
+				};
+
+				for(var i = 0; i < num_testAR; i++){
+					if(isOdd(testRand_Idx[i])){
+						var	LRpos = 1
+					} else {
+						var LRpos = 2
+					}
+					var pair_test_block = {
+						type: 'study-pair',
+						is_html: true,
+						stimulus_a: eval("arTest" + (list_idx+1) + "[testRand_Idx[i]].word1")[0], 
+						stimulus_b: eval("arTest" + (list_idx+1) + "[testRand_Idx[i]].word2")[0],
+						choices: ['q','p'],
+						timing_response: [-1], //study_time,
+						timing_post_trial: isi,
+						LRposition: LRpos,
+						prompt: "<font size = '5'><center><p>Did these items appear together in the most recent list?</p><p>Press 'Q' to indicate <i>Yes</i> and 'P' to indicate <i>No</i>.</p></center></font>" ,
+						data:{	
+							phase: "test",
+							list: eval("arTest" + (list_idx+1) + "[testRand_Idx[i]].list")[0],
+							trialType: eval("arTest" + (list_idx+1) + "[testRand_Idx[i]].trialType")[0],
+							stimType: eval("arTest" + (list_idx+1) + "[testRand_Idx[i]].stimType")[0],
+							cvCond: eval("arTest" + (list_idx+1) + "[testRand_Idx[i]].cvCond")[0],
+							wfCond: eval("arTest" + (list_idx+1) + "[testRand_Idx[i]].wfCond")[0],
+							// srCond: eval("arTest" + (list_idx+1) + "[testRand_Idx[i]].srTest")[0],
+							// arCond: eval("arTest" + (list_idx+1) + "[testRand_Idx[i]].arTest")[0],
+						}
+					};
+					experiment.push(pair_test_block);
+				};
+			}
+
+			if(list_idx < (num_lists-1)){
+				// Run a distractor task
+				var distractor_instructions_block = {
+					type: "text",
+					text: "<font size = '5'><p>In this next task, you will be presented with a series of numbers in sequence. Add them up as they are presented, then give the final sum.</p><p>Press any key to begin.</p></font>"
+				};
+				experiment.push(distractor_instructions_block);
+
+				var numTrials = delay/(study_time+isi); var distractStim = [];	var distractTotal = 0
+				for(var i = 0; i < numTrials; i++){
+					var num1 = [Math.floor((Math.random() * 9) + 1)];
+					var distractTotal = distractTotal + parseInt(num1);
+					distractStim.push({stimulus: num1});
+				};
+				
+				for(var dist_idx = 0; dist_idx < numTrials; dist_idx++){
+					var math_task = {
+						type: "study-word",
+						is_html: true,
+						choices: -1,
+						timing_response: study_time,
+						timing_post_trial: isi,
+						prompt: "",
+						timeline: [{stimulus: distractStim[dist_idx].stimulus[0]}],
+						data: {phase: 'distractor'}
+					}
+					experiment.push(math_task);
+				};
+
+				var math_question = {
+					type: "survey-text",
+					questions: ["<font size = '5'>What is the total?</font>"],
+					data: {phase: 'distractor'}
+				};
+				experiment.push(math_question);
+
+				var math_results = {
+					type: "text",
+					text: ["<p><font size = '5'>The total was " + distractTotal + ".</p> <p>Press any key to continue.</font></p>"],
+					data: {phase: 'distractor'}
+				};
+				experiment.push(math_results);
+			}
+	}
+
+	var environment_question = [
+	["<p>What is the noise level in your environment?</p><p>1: Very Quiet / 2: Quiet / 3: Neutral  /  4: Loud / 5: Very Loud</p>"], 
+	["<p>What device did you use during this experiment?</p><p>Laptop / Desktop / Notebook /  Smartphone / Tablet</p>"],
+	["<p>Did you cheat at all during the experiment? (Yes/No)</p>"],
+	["If you would like to provide any comments about the experiment, please enter them into the space below."]];
+
+	var qa_block = {
+		type: 'survey-text',
+		preamble: ["<font size = 4> Thank you for completing the experiment. Please answer the following questions about the environment in which you completed this session.</font>"],
+		questions: environment_question,
+		data: {phase: 'environment'}
+	};
+	experiment.push(qa_block);
+
+
+		// var completionCode = mTurkCode(4);
+
+		jsPsych.data.addProperties({
+			subNum: subjNum, //turkInfo.workerId,
+			cond: exptCond,		
+			timeStamp: utcDate,
+			experiment: 'WF&CV_NoEncodingTask_V2'
+		});
+
+		// To write to a server, you need to specify a table in the saveMySQL support function (see supportFunctions.js)
+		var save_data_block = {
+			type: 'call-function',
+			timing_post_trial: 0,
+			func: function(){
+				jsPsych.data.addProperties({completed: true}), 
+				// saveCSV("filename.csv", jsPsych.data.dataAsCSV()),
+				saveMySQL(jsPsych.data.getData()) //Need to edit table name in function.
+				// jsPsych.data.displayData();
+			}
+		};	
+		experiment.push(save_data_block);
+
+		var debrief_block = {
+			type: 'htmlTurkCode',
+			url: 'debriefing.html', 
+			var_text: "<a href=https://syr.sona-systems.com/webstudy_credit.aspx?experiment_id=678&credit_token=97433f115b1048238a0d36468775f72b&survey_code=" + subjNum + ">Please click here to return to the SONA website and receive credit for your participation.</a>"
+		};
+		experiment.push(debrief_block);
+	
+
+		jsPsych.init({
+			display_element: $('#jspsych-target'),
+			show_progress_bar: true,
+			timeline: experiment,
+			// show_progress_bar: true,
+			on_finish: function(data){
+				// jsPsych.data.displayData();
+				// jsPsych.data.addProperties({completed: true});
+				// saveCSV("filename.csv", jsPsych.data.dataAsCSV());
+				// saveMySQL(jsPsych.data.getData());
+				// jsPsych.data.displayData('csv');
+			}
+		});
+
+		</script>
+
+		</html>
