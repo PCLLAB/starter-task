@@ -1,0 +1,58 @@
+.centered-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    margin:auto;
+    width: 75%;
+}
+
+.experiment-container {
+    position: relative;
+    max-width: 1000px;
+    width: 80%;
+    min-width: 400px;
+
+    max-height: 600px;
+    height: 60%;
+    min-height: 350px;
+
+    padding: 10%;
+    margin: 20px auto 0;
+    border-radius: 3px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+    overflow-y: auto;
+    background: #f0f0f0;
+    border: 1px solid rgba(0, 0, 0, 0.3);
+}
+
+html {
+    background: #bbb;
+}
+
+.pcllab-button {
+    font-family: "Open Sans", Sans-serif;
+    padding: 0.5em 2em;
+    border: 3px solid #888;
+    color: #444;
+    background: 0;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 1.15em;
+    -webkit-transition: all 0.2s;
+    -moz-transition: all 0.2s;
+    transition: all ease 0.2s;
+}
+
+.pcllab-button-center {
+    position: relative;
+    margin: 0 auto 15px;
+    display: block;
+}
+
+.pcllab-button:hover {
+    background: #888;
+    color: #f0f0f0;
+
+}

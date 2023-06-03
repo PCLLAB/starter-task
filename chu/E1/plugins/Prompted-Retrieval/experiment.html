@@ -1,0 +1,79 @@
+<!doctype html>
+<html>
+<head>
+    <title>My experiment</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+    <script src="jspsych.js"></script>
+
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
+    <link href="css/jspsych.css" rel="stylesheet" type="text/css">
+    <link href="css/pcllab.css" rel="stylesheet" type="text/css">
+
+    <!--plugins-->
+    <script src="plugins/pcllab-no-mobile.js"></script>
+    <script src="plugins/pcllab-mturk-check.js"></script>
+    <script src="plugins/pcllab-consent-form.js"></script>
+    <script src="plugins/pcllab-demographics.js"></script>
+    <script src="plugins/pcllab-instructions.js"></script>
+    <script src="plugins/pcllab-mturk-generate.js"></script>
+    <script src="plugins/pcllab-mturk-show.js"></script>
+
+</head>
+
+<body>
+<div class="experiment-container"></div>
+<script>
+
+
+    var timeline = [];
+
+    timeline.push({
+        type: 'pcllab-no-mobile'
+    });
+
+    //        timeline.push({
+    //            type: 'pcllab-mturk-check'
+    //        });
+
+//    timeline.push({
+//        type: 'pcllab-consent-form'
+//    });
+//
+//    timeline.push({
+//        type: 'pcllab-demographics'
+//    });
+//
+//    timeline.push({
+//        type: 'pcllab-instructions',
+//        label: 'General'
+//    });
+//
+//    timeline.push({
+//        type: 'pcllab-instructions',
+//        label: 'Study'
+//    });
+
+    timeline.push({
+        type: 'pcllab-mturk-generate',
+    });
+
+    timeline.push({
+        type: 'pcllab-mturk-show',
+    });
+
+    jsPsych.init({
+        show_progress_bar: true,
+        display_element: $(".experiment-container"),
+        timeline: timeline,
+        on_finish: function () {
+
+            jsPsych.data.displayData();
+//            $(".experiment-container").html("finished");
+        }
+    })
+
+</script>
+</body>
+
+</html>

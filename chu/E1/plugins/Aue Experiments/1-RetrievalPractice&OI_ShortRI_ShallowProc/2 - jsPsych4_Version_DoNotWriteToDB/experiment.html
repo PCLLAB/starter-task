@@ -1,0 +1,464 @@
+<!doctype html>
+<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+<meta content="utf-8" http-equiv="encoding">
+<html>
+<head>
+	<title>Memory for Words</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script> <!-- Import the core library -->
+	<script src="jspsych.js"></script> 
+	<script src="seedrandom.js"></script> 
+	<link href="css/jspsych.css" rel="stylesheet" type="text/css"></link> <!-- Import the style sheet -->
+	<script src="//cdnjs.cloudflare.com/ajax/libs/seedrandom/2.4.0/seedrandom.min.js"></script> <!-- Seeded random number generation -->
+
+	<!-- Optional plugins -->
+	<script src="plugins/jspsych-text.js"></script> <!-- Display text on screen -->
+	<script src="plugins/jspsych-single-stim.js"></script> <!-- Present a series of single stimuli -->
+	<script src="plugins/jspsych-html.js"></script>
+	<script src="plugins/jspsych-survey-text.js"></script>
+	<script src="plugins/jspsych-timedSurveyText.js"></script>
+	<script src="plugins/jspsych-2afc.js"></script>
+	<script src="plugins/jspsych-call-function.js"></script>
+
+</head>
+<body> 
+	<div id="jspsych-target"></div>
+</body>
+
+<script>
+	// FUNCTIONS THAT WE NEED
+	function randomIntFromInterval(min,max){
+		return Math.floor(Math.random()*(max-min+1)+min);
+	}
+	
+	function getQueryVariable(name) {
+		name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+		var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+		results = regex.exec(location.search);
+		return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+	}
+
+	var check_consent = function(elem) {
+		if ($('#consent_checkbox').is(':checked')) {
+			return true;
+		}
+		else {
+			alert("If you wish to participate, you must check the box next to the statement 'I agree to participate in this study.'");
+			return false;
+		}
+		return false;
+	};
+
+	function checkMobile() {
+		if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+			return true;
+		} else {
+			return false;
+		}
+	};
+
+	function LRposition(numItems){
+		var nItems = numItems*.5;
+		var rightPos = Array.apply(null, new Array(nItems)).map(Number.prototype.valueOf,0);
+		var leftPos = Array.apply(null, new Array(nItems)).map(Number.prototype.valueOf,1);
+		var LRpos_temp = rightPos.concat(leftPos);
+		var LRpos_out = jsPsych.randomization.repeat(LRpos_temp, 1);
+		return(LRpos_out);	
+	}
+
+	// Generate a unique code for them to input to mturk
+	function mTurkCode(codeLength){
+		var text = "";
+		var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+		for( var i=0; i < codeLength; i++ )
+			text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+		return text;
+	}
+
+	function saveMySQL(data){
+	   var data_table = "RPandOI"; // change this for different experiments
+	   $.ajax({
+	   	type:'post',
+	   	cache: false,
+	      url: 'savedata.php', // change this to point to your php file.
+	      // opt_data is to add additional values to every row, like a subject ID
+	      // replace 'key' with the column name, and 'value' with the value.
+	      data: {
+	      	table: data_table,
+	      	json: JSON.stringify(data)
+	      	// opt_data: {key: 'NA'}
+	      },
+	      success: function(output) { console.log(output); } // write the result to javascript console
+	  });
+	}
+
+	function saveCSV(filename, filedata){
+		$.ajax({
+			type:'post',
+			cache: false,
+		      url: 'save_data.php', // this is the path to the above PHP script
+		      data: {filename: filename, filedata: filedata}
+		  });
+	}
+
+	var turkInfo = jsPsych.turk.turkInfo();
+
+	// PARAMETERS FOR DEBUGGING OR FULL EXPERIMENT
+	var experiment = [];	
+	if(turkInfo.workerId == '999'){
+		var num_study = 10; //Study 10 items
+		var num_foils = num_study*1.5
+	    var study_time = 500; //Study the words for 3000 ms
+	    var isi = 250; //with a 250 ms isi
+	    var delay = 5000; //add a 10000 ms delay
+	    // ?assignmentId=999?hitId=999?turkSubmitTo=999?workerId=999 //Query strings for mturk
+	    // window.alert('Debugging mode!')
+	} else {
+		var num_study = 80; //Study 10 items
+	    var study_time = 2000; //Study the words for 3000 ms
+	    var isi = 500; //with a 250 ms isi
+	    var delay = 60000; //add a 10000 ms delay
+	};
+
+	Math.seedrandom(turkInfo.workerId);
+	// window.alert(getQueryVariable("workerId"));
+
+	// SPECIFY PARAMETERS
+	// var experiment = [];
+	// var num_study = 80; //Study 10 items
+    // var study_time = 2000; //Study the words for 3000 ms
+    // var isi = 500; //with a 250 ms isi
+    // var delay = 60000; //add a 10000 ms delay
+
+    var timeStamp = Math.floor(Date.now() / 1000);
+    var dt = new Date();
+    var utcDate = dt.toUTCString();
+    var subjNum = turkInfo.workerID;
+
+	// SPECIFY STIMULI
+	var all_stimuli = ["academy","alcohol","ankle","antique","babe","balloon","banana","bandit","baron","basket","bass","baton","beam","bean","beef","bench","blouse","boat","bone","booth","brake","branch","bread","breath","brick","bronze","brook","brush","bubble","bucket","buffer","bump","burn","bush","butter","cabin","cafe","cake","camp","canal","candy","cane","canon","cape","capsule","caravan","carol","carpet","cart","cave","cedar","cell","cement","cent","chapel","chassis","cheek","cherry","chin","chisel","circus","claw","cloak","closet","cloth","coach","coffee","coffin","coil","coin","collar","column","cone","copper","coral","cord","costume","cotton","cousin","cream","crew","crow","crown","cruiser","curb","dame","dancer","dawn","dell","delta","dent","dial","dime","dinner","dirt","disc","ditch","dock","dove","drain","dress","duck","dummy","dungeon","dust","earl","emperor","estate","ether","feast","fence","ferry","fiddle","flag","flash","flea","fleet","flock","fork","frog","frost","gift","ginger","goat","golf","grape","grave","gravel","grip","grove","guard","hammer","hare","hawk","heap","helmet","herring","hind","hockey","honey","hood","hook","horn","hose","hound","hunter","hymn","insect","isle","ivory","jacket","jail","jelly","jewel","juice","kennel","kettle","kiss","kitten","knee","knife","lamb","lamp","lane","lantern","leaf","leak","leather","lemon","lens","lime","linen","lion","lobby","lock","loop","lunch","magnet","maiden","mansion","maple","marble","mare","medal","mermaid","milk","mineral","mold","monkey","mosque","mustard","muzzle","nail","navy","needle","nerve","nest","nickel","nurse","olive","opium","outfit","oven","paint","palette","parade","pearl","pedal","penny","pepper","pine","pipe","plaza","plug","poet","poison","polio","pond","pool","portal","powder","priest","prison","prize","prop","punch","quarter","rabbi","rabbit","rack","rain","ranch","rash","receipt","referee","relic","rice","ridge","rope","ruler","saddle","sail","salt","satin","sauce","scratch","scream","seal","seat","servant","sheep","shower","shutter","silk","sink","skate","slap","slide","smoke","snake","sodium","soil","sore","sphere","spice","spike","spoke","sponge","squire","stable","stadium","steel","stem","stew","stomach","straw","surf","swamp","sword","tack","tail","tailor","tank","tear","temple","tennis","tent","thief","thorn","throat","thumb","tire","toad","toilet","tomato","tongue","tooth","tourist","trail","trailer","trash","tribe","trunk","tunnel","turtle","typhoon","uncle","vehicle","vein","velvet","vinegar","violin","visitor","volcano","voter","wallet","walnut","weed","whip","whistle","widow","wine","wink","womb","worker"];
+
+	var shuffled_words = jsPsych.randomization.shuffle(all_stimuli); //Randomize the words
+
+	var target_stimuli = []; var phase2_foils = []; var phase3_foils = [];
+	for(var i = 0; i < num_study; i++){
+		target_stimuli.push({ //Choose a subset of words for targets
+			word: all_stimuli[i],
+			data: {trial_cond: '1'}
+		});
+		phase2_foils.push({ //Choose a subset of words for foils during Phase 2
+			word: all_stimuli[i + num_study],
+			data: {trial_cond: '2'}
+		});
+		// phase3_foils.push({ //Choose a subset of words for foils during Phase 3
+		// 	word: all_stimuli[i + num_study*2],
+		// 	data: {trial_cond: '3'}
+		// });
+	};
+
+	var phase3_tempA = []; var phase3_tempB = [];
+		for(var i = 0; i < (num_study*.5); i++){
+			phase3_tempA.push({ //Choose a subset of words for foils during Phase 3
+				word: shuffled_words[i + num_study*2],
+				data: {trial_cond: '3'}
+			});
+			phase3_tempB.push({ //Choose a subset of words for foils during Phase 3
+				word: phase2_foils[i].word,
+				data: {trial_cond: '2'}
+			});
+	};
+
+	// Randomize the lists
+	var phase1_stim = jsPsych.randomization.repeat(target_stimuli, 1, true);
+	var phase2_items = target_stimuli.concat(phase2_foils);
+	var phase2_stim = jsPsych.randomization.repeat(phase2_items, 1, true);
+	var phase3_targets = jsPsych.randomization.repeat(target_stimuli, 1, true);
+	var phase3_items = phase3_tempA.concat(phase3_tempB);
+	var phase3_foils = jsPsych.randomization.repeat(phase3_items, 1, true);
+
+	// var phase3_foils = jsPsych.randomization.repeat(phase3_foils, 1, true);	
+	
+	var numTrials = delay/(study_time+isi); 
+	var distractStim1 = []; var distractStim2 = [];
+	var distractTotal1 = 0; var distractTotal2 = 0;
+	// var numbers = []; var total = 0;
+	for(var i = 0; i < numTrials; i++){
+		var num1 = [Math.floor((Math.random() * 9) + 1)];
+		var distractTotal1 = distractTotal1 + parseInt(num1);
+		distractStim1.push([num1]);
+
+		var num2 = [Math.floor((Math.random() * 9) + 1)];
+		var distractTotal2 = distractTotal2 + parseInt(num2);
+		distractStim2.push([num2]);
+	}
+
+	var demo_questions = ["What is your age:", "What is your gender:", "Is English your first language (Y/N)?:"];
+
+	// EXPERIMENT BLOCKS
+	/* Check for a mobile device */
+	if(checkMobile() == true){
+		var nomobile_block = {
+			type: 'html',
+			pages: [{url: "nomobile.html"}]		
+		};
+		experiment.push(nomobile_block);			
+	}
+
+	/* Check for mTurk ID */
+	if(turkInfo.workerId == ''){
+		var consent_block = {
+			type: 'html',
+    		// pages: [{url: "consent.html", cont_btn: "start", check_fn: check_consent}]
+    		pages: [{url: "consentPreview.html"}]
+    	}
+    } else {
+    	var consent_block = {
+    		type: 'html',
+    		// pages: [{url: "consentPreview.html"}]
+    		pages: [{url: "consent.html", cont_btn: "start", check_fn: check_consent}]
+    	};
+    };
+
+    var demo_block ={
+    	type: 'survey-text',
+    	questions: [demo_questions],
+    	preamble: ["<b><font size = 6> Demographics</font></b>"],
+    	on_finish: function(trial_data){
+            jsPsych.data.addDataToLastTrial({phase: 'demographics'});
+		}
+    };
+
+    /* Instructions Block */
+    var nav_instructions_block = {
+    	type: "text",
+    	text: "<font size = '5'><p>Throughout the experiment, you will see a progress bar at the top of the screen to indicate your progress in the experiment.</p><p>At the end of the experiment, there will be a few final questions for you to answer. You will then receive your code to enter into MTurk.</p><p>Please do not write any of the study materials down, do not click the back button on your browser, and do not open other tabs or browsers during the experiment.</p><p>Press any key to continue.</p></font>"
+    };
+
+    var study_instructions_block = {
+    	type: "text",
+    	text: "<font size = '5'><p>In this experiment, you will see a list of words presented on the screen. Try to remember the words. Be careful because each word will only appear in the screen for " + (study_time/1000) + " seconds. Your memory for the list will be tested later during the experiment.</p><p>Press any key to begin.</p></font>"
+    };
+
+	// /* Study Block */
+	var study_block = {
+		type: "single-stim",
+		stimuli: phase1_stim.word,
+		data: phase1_stim.data,
+		// stimuli: target_stimuli,
+		is_html: true,
+		choices: -1,
+		timing_response: study_time,
+		timing_post_trial: isi,
+		prompt: "",
+	    on_finish: function(trial_data){
+            jsPsych.data.addDataToLastTrial({phase: 'study'});
+    	}
+    };
+
+	/* Distractor instructions block */
+	var distractor_instructions_block = {
+		type: "text",
+		text: "<font size = '5'><p>In this next task, you will be presented with a series of numbers in sequence. "+
+		"Add them up as they are presented, then give the final sum.</p>" +
+		"<p>Press any key to begin.</p></font>"
+	};
+
+	/* Distractor Block */
+	var math_task = {
+		type: "single-stim",
+		stimuli: distractStim1,
+		is_html: true,
+		choices: -1,
+		timing_stim: study_time,
+		timing_response: study_time,
+		timing_post_trial: isi,
+	};
+
+	var math_result_question = ["What is the total?"];
+	var math_question = {
+		type: 'survey-text',
+		questions: [math_result_question],
+	};
+
+	var math_results = {
+		type: "text",
+		text: ("<p><font size = '5'>The total was " + distractTotal1 + ".</p> <p>Press any key to continue.</font></p>")
+	};
+
+		/* Distractor Block */
+	var math_task2 = {
+		type: "single-stim",
+		stimuli: distractStim2,
+		is_html: true,
+		choices: -1,
+		timing_stim: study_time,
+		timing_response: study_time,
+		timing_post_trial: isi,
+	};
+
+	var math_results2 = {
+		type: "text",
+		text: ("<p><font size = '5'>The total was " + distractTotal2 + ".</p> <p>Press any key to continue.</font></p>")
+	};
+
+
+	var exptCond = Math.round(Math.random(0,1));
+	if(exptCond == 1){
+	    // Intervening task instructions
+	    var intervening_instructions_block = {
+	    	type: "text",
+	    	text: "<font size = '5'><p>Now we would like to see if you remember some of the words from the list you just studied.</p><p>On each trial a word will be presented on the screen. Your job is to decide whether you saw the word on the previous study list.</p><p>To respond, press <b>Q</b> to indicate that you DO remember the word being studied on the previous list, or press <b>P</b> to indicate that you DO NOT remember the word being studied on the previous list.</p><p>Press any key to begin.</p></font>"
+	    };
+
+	    // Phase 2 Block (Intervening Task) 
+	    // **This needs to be assigned randomly to either a restudy or a test. Maybe a counter on the server side and an if-statement here
+	    // that assigns participants to one condition or the other.
+	    var intervening_task_block = {
+	    	type: "single-stim",
+				// stimuli: target_stimuli,
+				stimuli: phase2_stim.word,
+				is_html: true,
+				choices: ['Q','P'],
+				timing_response: -1,
+				timing_post_trial: isi,
+				prompt: "<p><center><font size = '5'>Was this word a part of the list you just studied?</p> <p>Press <b>'Q'</b> to indicate 'YES'"+
+				" and <b>'P'</b> to indicate 'NO.'.</font></center></p>",
+				data: phase2_stim.data,
+			    on_finish: function(trial_data){
+		            jsPsych.data.addDataToLastTrial({phase: 'interveningTask'});
+    			}
+		};
+	} else {
+	    // Intervening task instructions
+	    var intervening_instructions_block = {
+	    	type: "text",
+	    	text: "<font size = '5'><p>Next, you will see another list of words. Some may be words that you have seen recently, some may not.</p><p>On each trial a word will be presented on the screen. Your job is to decide whether the word contains an 'R' sound.</p><p> To respond, press <b>Q</b> to indicate that the word DOES contain an 'R' sound, or press <b>P</b> to indicate that it does NOT contain an 'R' sound.</p><p>Press any key to begin.</p></font>"
+	    };
+
+	    // Phase 2 Block (Intervening Task) 
+	    // **This needs to be assigned randomly to either a restudy or a test. Maybe a counter on the server side and an if-statement here
+	    // that assigns participants to one condition or the other.
+	    var intervening_task_block = {
+	    	type: "single-stim",
+				// stimuli: target_stimuli,
+				stimuli: phase2_stim.word,
+				is_html: true,
+				choices: ['Q','P'],
+				timing_response: -1,
+				timing_post_trial: isi,
+				prompt: "<p><center><font size = '5'>Does this word contain an 'R' sound?</p> <p>Press <b>'Q'</b> to indicate 'YES' and <b>'P'</b> to indicate 'NO'.</font></center></p>",
+				data: phase2_stim.data,
+				on_finish: function(trial_data){
+		            jsPsych.data.addDataToLastTrial({phase: 'interveningTask'});
+    			}
+		};
+	}
+
+	var final_instructions_block = {
+		type: "text",
+		text: "<font size = '5'><p>Now we would like to see if you remember the words you saw from the very first study list.</p> <p>On each trial two words will be presented on the screen. Your job is to decide which word appeared during the very first study list. </p> <p>To respond, press <b>Q</b> to indicate that the word on the LEFT was studied on very first list, or press <b>P</b> to indicate that the word on the RIGHT was studied on very first list.</p><p>Press any key to begin.</p></font>"
+	};
+
+	// Test Block - Should be 2AFC with the L/R position of the target assigned randomly. 
+	var LRpos = LRposition(num_study);
+	var final_test_block = {
+		type: "2afc",
+		stimuli_a: phase3_targets.word,
+		stimuli_b: phase3_foils.word,
+		is_html: true,
+		timing_ab: [-1],
+		LRpos: LRpos,
+		data: phase3_foils.data,
+		prompt: "<p><center><font size = '5'>Which of these items was studied during the very first list?</p> <p>Press <b>'Q'</b> to indicate the item on the left and <b>'P'</b> to indicate the item on the right.</font></center></p>",
+		on_finish: function(trial_data){
+            jsPsych.data.addDataToLastTrial({phase: 'finalTest'});
+		}
+	};
+
+	var environment_question = [["<p>What is the noise level in your environment?</p><p>1: Very Quiet / 2: Quiet / 3: Neutral  /  4: Loud / 5: Very Loud</p>"],["<p>What device did you use during this experiment?</p><p>Laptop / Desktop / Notebook /  Smartphone / Tablet</p>"],["<p>Did you cheat at all during the experiment? (Yes/No)</p>"],["If you would like to provide any comments about the experiment, please enter them into the space below."]]
+	
+	var qa_block = {
+		type: 'survey-text',
+		preamble: ["Please answer the following questions about the environment in which you completed this session."],
+		questions: [environment_question],
+		on_finish: function(trial_data){
+            jsPsych.data.addDataToLastTrial({phase: 'environment'});
+		}
+	};
+
+	var completionCode = mTurkCode(4);
+
+	var debrief_block = {
+		type: 'html',
+		pages: [{url: 'debriefing.html', var_text: "<div><center><h3>Please put the code below into the box on mTurk to confirm your participation. HITs are approved manually. Most are approved within the hour, but it may take up to 12 hours before approval.</h3><p><font size='15'>"+ completionCode + "</font></p></center></div>"}]
+	}
+
+	var save_data_block = {
+		type: 'call-function',
+		timing_post_trial: 0,
+		func: function(){
+			jsPsych.data.addProperties({completed: true}), 
+			// saveCSV("filename.csv", jsPsych.data.dataAsCSV())
+			saveMySQL(jsPsych.data.getData());
+			// jsPsych.data.displayData();
+		}
+	}
+
+	//Add those blocks to the experiment structure
+	experiment.push(consent_block);
+	experiment.push(demo_block);
+	experiment.push(nav_instructions_block);
+
+	experiment.push(study_instructions_block);
+	experiment.push(study_block);
+
+	experiment.push(distractor_instructions_block);
+	experiment.push(math_task);
+	experiment.push(math_question);
+	experiment.push(math_results);
+
+	experiment.push(intervening_instructions_block);
+	experiment.push(intervening_task_block);
+
+	experiment.push(distractor_instructions_block);
+	experiment.push(math_task2);
+	experiment.push(math_question);
+	experiment.push(math_results2);
+
+	experiment.push(final_instructions_block);
+	experiment.push(final_test_block);
+
+    experiment.push(qa_block);
+    experiment.push(save_data_block);
+    experiment.push(debrief_block);
+
+    jsPsych.data.addProperties({
+    	subNum: turkInfo.workerId,
+    	condition: exptCond,
+    	turkCode: completionCode,
+    	timeStamp: utcDate,
+    	experiment: '1 - special_foils',
+	// foil: 0, //Drop these last two before Phase 2
+	// stimulus_pos: 0
+	});
+
+    jsPsych.init({
+    	display_element: $('#jspsych-target'),
+    	show_progress_bar: true,
+    	experiment_structure: experiment,
+	// show_progress_bar: true,
+	// on_finish: function(){
+	// 	// jsPsych.data.addProperties({completed: true}); 
+	// 	// saveCSV("filename.csv", jsPsych.data.dataAsCSV()),
+	// 	// saveMySQL(jsPsych.data.getData());
+	// 	jsPsych.data.displayData();
+	// }
+	});
+
+
+
+
+</script>
+
+</html>

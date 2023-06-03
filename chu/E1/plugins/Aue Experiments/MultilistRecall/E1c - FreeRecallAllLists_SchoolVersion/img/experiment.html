@@ -1,0 +1,527 @@
+	<!doctype html>
+	<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+	<meta content="utf-8" http-equiv="encoding">
+	<html>
+	<head>
+		<title>Memory for Words</title>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+		<script src="js/snap.svg-min.js"></script>
+
+		<!-- Import the core library -->
+		<script src="jspsych.js"></script> 
+		<script src="seedrandom.js"></script> 
+		<script src="supportFunctions.js"></script>
+
+		<!-- Import the style sheets -->
+		<link  href="css/pcllab.css" rel="stylesheet" type="text/css"></link>
+		<link  href="css/jspsych.css" rel="stylesheet" type="text/css"></link>
+		
+		<!-- Seeded random number generation -->
+		<script src="//cdnjs.cloudflare.com/ajax/libs/seedrandom/2.4.0/seedrandom.min.js"></script>
+
+		<!-- Optional plugins -->
+		<script src="plugins/jspsych-text.js"></script> <!-- Display text on screen -->
+		<script src="plugins/jspsych-study-word.js"></script>
+		<script src="plugins/jspsych-html.js"></script>
+		<script src="plugins/jspsych-htmlTurkCode.js"></script>
+		<script src="plugins/jspsych-survey-text.js"></script>
+		<script src="plugins/jspsych-call-function.js"></script>
+		<script src="plugins/jspsych-study-pair.js"></script>
+		<script src="plugins/jspsych-cued-recall.js"></script>
+		<script src="plugins/jspsych-free-recall.js"></script>
+		<script src="plugins/jspsych-palmer.js"></script>
+		<script src="plugins/jspsych-single-stim.js"></script>
+
+	</head>
+	<body> 
+		<div id="jspsych-target"></div>
+	</body>
+
+	<script>
+		// // FUNCTIONS THAT WE NEED
+		var alphaOnly = /[a-z]/g;
+		// var turkInfo = jsPsych.turk.turkInfo();
+		// var subjNum = jsPsych.data.getURLVariable('workerId');
+		var turkInfo = jsPsych.turk.turkInfo();
+		var subjNum = turkInfo.workerId;
+		var timeStamp = Math.floor(Date.now() / 1000);
+		var dt = new Date();
+		var utcDate = dt.toUTCString();
+		var experiment = [];
+
+		// PARAMETERS FOR DEBUGGING OR FULL EXPERIMENT
+		if(turkInfo.workerId == 999){
+			var num_study = 10; 
+			var num_lists = 3;
+			var num_items = num_study*num_lists;
+			var study_time = 100;
+			var isi = 50; 
+			var delay = 3000;
+			var num_distract = 1;
+		    // ?assignmentId=999?hitId=999?turkSubmitTo=999?workerId=999 //Query strings for mturk
+		    // https://yourschool.qualtrics.com/SE/?SID=SV_b9ZD41hMZaqE&id=%SURVEY_CODE%
+
+		    window.alert('Debugging mode!')
+		} else {
+			var num_study = 24; // This needs to be divisible by 2;
+			var num_lists = 1;
+			var num_items = num_study*num_lists;
+			var study_time = 3000;
+			var isi = 500; 
+			var delay = 60000;
+			var num_distract = 12;
+			Math.seedrandom(subjNum);
+		};
+
+		// SPECIFY STIMULI
+		var all_cues = readStim('stimuli/cues.json');
+		var all_targets = readStim('stimuli/targets.json');
+
+		var exptCond = Math.floor(Math.random()*3)+1;
+
+		// MAKE INDICES FOR STUDY AND TEST
+		// Assign a value to each item in the corpus
+		var item_idx = [];
+		for(var i = 0; i < all_cues.length; i++){
+			var num1 = i;
+			item_idx.push([num1]);
+		}
+		var all_items = jsPsych.randomization.shuffle(item_idx);
+
+		var study1 = []; 
+		for(var i = 0; i < num_study; i++){
+			item1 = all_cues[all_items[i]].cue;
+			item2 = all_targets[all_items[i]].target;
+			study1.push({cue: [item1], tgt: [item2]});
+		}
+
+		var block1 = []; var block2 = [];	
+		for(var i = 0; i < num_study/2; i++){
+			item3 = all_cues[all_items[i]].cue;
+			item4 = all_targets[all_items[i]].target;
+			block1.push({cue: [item3], tgt: [item4]});
+
+			item5 = all_cues[all_items[i+(num_study/2)]].cue;
+			item6 = all_targets[all_items[i+(num_study/2)]].target;
+			block2.push({cue: [item5], tgt: [item6]});
+		}
+
+
+		// EXPERIMENT BLOCKS
+		// /* Check for a mobile device */
+		if(checkMobile() == true){
+			var nomobile_block = {
+				"type": "html",
+				"url": "nomobile.html"		
+			};
+			experiment.push(nomobile_block);			
+		}
+
+		// // /* Check for mTurk ID */
+		// if(turkInfo.workerId == ''){
+		// 	var consent_block = {
+		// 		type: 'html',
+		// 		force_refresh: true,
+		// 		"url": "consentPreview.html",    		
+		// 		cont_btn: 'start',
+		// 		check_fn: check_consent
+		// 	}
+		// } else {
+		// 	var consent_block = {
+		// 		type: 'html',
+		// 		force_refresh: true,
+		// 		url: 'consent.html',
+		// 		cont_btn: 'start',
+		// 		check_fn: check_consent
+		// 	};
+		// };
+		// experiment.push(consent_block);
+
+		var demo_questions = ["<font size = '5'>What is your age:", "<font size = '5'>What is your gender:", "<font size = '5'>Is English your first language (Y/N)?:"];
+		var demo_block ={
+			type: 'survey-text',
+			questions: demo_questions,
+			preamble: ["<b><font size = 6> Demographics</font></b>"],
+			on_finish: function(trial_data){
+				jsPsych.data.addDataToLastTrial({phase: 'demographics'});
+			}
+		};
+		experiment.push(demo_block);
+
+	 //    // // /* Instructions Block */
+	 var nav_instructions_block = {
+	 	type: "text",
+	 	text: "<font size = '5'><p>Throughout the experiment, you will see a progress bar at the top of the screen to indicate your progress in the experiment.</p><p>At the end of the experiment, there will be a few final questions for you to answer. You will then receive credit for your participation.</p><p>Please do not write any of the study materials down, do not click the back button on your browser, and do not open other tabs or browsers during the experiment. Please make sure that your <i>Caps Lock</i> is off.</p><p>Today's experiment will be divided into multiple sections. Please follow the instructions specific to that section</p><p>Press any key to continue.</p></font>"
+	 };
+	 experiment.push(nav_instructions_block);
+
+	 var study_instructions_block = {
+	 	type: "text",
+	 	text: "<font size = '5'><p>In this experiment, you will see a series of Swahili words and their English translation. Try to remember the words such that you can recall the English translation when given the Swahili word. Your memory for the list will be tested during the experiment. Your memory may be tested once at the end of the experiment or multiple times throughout the session. You will have multiple opportunities to study the Swahili words and their English translations.</p><p>Press any key to begin.</p></font>"
+	 };
+	 experiment.push(study_instructions_block);
+
+	 if(exptCond == 1){	
+		var trialOrder = [0, 4, 1, 4, 0, 4, 1, 4, 0, 4, 1, 5, 2]; // Mixed: S-S/T-S-S/T-S-S/T-T	
+	} else if(exptCond == 2){
+		var trialOrder = [0, 4, 0, 4, 0, 4, 0, 4, 0, 4, 0, 5, 2]; // Pure weak: S-S-S-S-S-S-T
+	} else if(exptCond == 3){
+		var trialOrder = [0, 4, 2, 4, 0, 4, 2, 4, 0, 4, 2, 5, 2]; // Pure strong: S-T-S-T-S-T-T
+	}
+
+	var num_stages = trialOrder.length
+ 	for(var stage_idx = 0; stage_idx < num_stages; stage_idx++){ //Within each block, loop over each stage
+ 		var nextTrial = trialOrder[stage_idx];
+ 		switch (nextTrial){
+	    	case 0: // pure study
+		    	if(stage_idx > 0){
+		    		var block_start = {
+		    		type: "text",
+		    		text: ["<font size = '5'><p>Next, you will have another opportunity to study the Swahili words and their English translations. Try to remember the words such that you can recall the English translation when given the Swahili word. Your memory for the all of the items from the list will be tested later during this experiment.</p><p>Press any key to begin.</p></font>"]
+		    	};
+		    	experiment.push(block_start);
+		    };
+
+	    	var studyRand_temp = [];    
+	    	for(var i = 0; i < num_study; i++){
+	    		var num1 = i;
+	    		studyRand_temp.push([num1]);
+	    	}
+	    	var studyRand_Idx = jsPsych.randomization.shuffle(studyRand_temp);
+
+	    	for(var i = 0; i < num_study; i++){
+	    		var pair_study_block = {
+	    			type: 'study-pair',
+	    			is_html: true,
+	    			stimulus_a: study1[studyRand_Idx[i]].cue[0], 
+	    			stimulus_b: study1[studyRand_Idx[i]].tgt[0],
+	    			choices: -1,
+	    			timing_response: study_time,
+	    			timing_post_trial: isi,
+	    			LRposition: 1,
+	    			prompt: "",
+	    			data: {
+	    				phase: "pure_study",
+	    				itemPos: (i+1),
+	    				stage: (stage_idx + 1),
+	    			}
+	    		};
+	    		experiment.push(pair_study_block);
+	    	}
+	    	break;
+
+	    	case 1: // blocked study-test
+
+	    	var block_start = {
+	    		type: "text",
+	    		text: ["<font size = '5'><p>Next, you will see the Swahili words again. For some words, you may have an additional opportunity to study their English translations, while for others you may be given the Swahili word and asked to recall the English translation of the word. Your memory for the all of the items and their translations will be tested later during this experiment.</p><p>Press any key to begin.</p></font>"]
+	    	};
+	    	experiment.push(block_start);
+
+	    	var mixedRand_temp = [];    
+	    	for(var i = 0; i < num_study/2; i++){
+	    		var num1 = i;
+	    		mixedRand_temp.push([num1]);
+	    	}
+	    	var mixedRand_Idx1 = jsPsych.randomization.shuffle(mixedRand_temp);
+	    	var mixedRand_Idx2 = jsPsych.randomization.shuffle(mixedRand_temp);
+
+	    	var randDraw = Math.floor(Math.random()*10)+1
+	    	if(isOdd(randDraw)){
+	    		var	blockOrder = [0,1];
+	    		var whichFirst = 0;
+
+	    	} else {
+	    		var blockOrder = [1,0]
+	    		var whichFirst = 1;
+	    	}
+
+	    	var blockList = [];
+	    	for(var i = 0; i < num_study; i++){
+	    		if(i < num_study/2){
+	    			var blkIdx = blockOrder[0];
+	    			var counter = i;
+	    		} else {
+	    			var blkIdx = blockOrder[1];
+	    			var counter = (i - num_study/2);
+	    		}
+
+	    		switch(blkIdx){
+	    			case 0:				    	
+	    			var pair_study_block = {
+	    				type: 'study-pair',
+	    				is_html: true,
+	    				stimulus_a: block1[mixedRand_Idx1[counter]].cue[0], 
+	    				stimulus_b: block1[mixedRand_Idx1[counter]].tgt[0],
+	    				choices: -1,
+	    				timing_response: study_time,
+	    				timing_post_trial: isi,
+	    				LRposition: 1,
+	    				prompt: "",
+	    				data: {
+	    					phase: "mixed_study",
+	    					stage: (stage_idx + 1),
+	    					itemPos: (i+1),
+	    					whichFirst: whichFirst,
+	    				}
+	    			};
+	    			experiment.push(pair_study_block);
+	    			break;
+
+	    			case 1:
+	    			var test_block = {
+	    				type: 'cued-recall',
+	    				preamble: ["<font size = 5> What is the English translation for this word that you studied earlier? Type in your response and press <b>ENTER</b> to continue.</font>"],
+	    				questions: block2[mixedRand_Idx2[counter]].cue[0],
+	    				targets: block2[mixedRand_Idx2[counter]].tgt[0],
+	    				data: {
+	    					phase: "mixed_test",
+	    					stage: (stage_idx + 1),
+	    					itemPos: (i+1),
+	    					whichFirst: whichFirst,
+
+	    				}
+	    			};
+	    			experiment.push(test_block);					
+	    			break;
+	    		};
+	    	};
+	    	break;
+
+	    	case 2: // pure test
+
+	    	if(stage_idx >= num_stages - 1){
+	    		var block_start = {
+		    		type: "text",
+		    		text: ["<font size = '5'><p>You're almost done. This is the last task of the experiment. On each trial you will be given the Swahili word and asked to recall the English translation of the word.</p><p>Press any key to begin.</p></font>"]
+		    	};
+		    	experiment.push(block_start);
+			} else {
+	    		var block_start = {
+		    		type: "text",
+		    		text: ["<font size = '5'><p>On each trial you will be given the Swahili word and asked to recall the English translation of the word. Your memory for the all of the items will be tested again later during this experiment.</p><p>Press any key to begin.</p></font>"]
+		    	};
+		    	experiment.push(block_start);
+		    }
+
+	    	var testRand_temp = [];    
+	    	for(var i = 0; i < num_study; i++){
+	    		var num1 = i;
+	    		testRand_temp.push([num1]);
+	    	}
+	    	var testRand_Idx = jsPsych.randomization.shuffle(testRand_temp);
+
+	    	for(var i = 0; i < num_study; i++){
+	    		var test_block = {
+	    			type: 'cued-recall',
+	    			preamble: ["<font size = 5> What is the English translation for this word that you studied earlier? Type in your response and press <b>ENTER</b> to continue.</font>"],
+	    			questions: study1[testRand_Idx[i]].cue[0],
+	    			targets: study1[testRand_Idx[i]].tgt[0],
+	    			data: {
+	    				phase: 'pure_test',
+	    				stage: (stage_idx + 1),
+	    				itemPos: (i+1),
+	    			}
+	    		};
+	    		experiment.push(test_block);					
+	    	};
+	    	break;
+
+			case 3: // Final free recall
+			// var final_recall_instructions = {
+			// 	type: "text",
+			// 	text: "<font size = '5'><p>Now we would like you to try to recall ALL of the <u>English</u> words that you studied during <b>List " + (list_idx + 1) + "</b>.</p><p>Please enter responses one at a time in lower case letters. After you have entered your response press the ENTER key to submit your response. Feel free to recall the words in any order. When you have entered all of the words that you are able to recall, press the CONTINUE button at the bottom of the screen.</p><p>Press any key to begin.</p></font>"
+			// };
+			// experiment.push(final_recall_instructions);
+
+			// var final_recall_task = {
+			// 	type: 'free-recall',
+			// 	instructions: "Please recall words all of the ENGLISH words that you studied during the experiment. You do <u>not</u> need to recall the Swahili words.",
+			// 	data: { 
+			// 		phase: 'final_recall',
+			// 		stage: (stage_idx + 1),
+			// 		itemPos: (i+1),
+			// 		cond: exptCond
+			// 	}
+			// };
+			// experiment.push(final_recall_task);
+			break;
+
+			case 4: // Distractor task
+			var distractor_instructions_block = {
+				type: "text",
+				text: "<font size = '5'><p>In this next task, you will be presented with a series of numbers in sequence. Add them up as they are presented, then give the final sum.</p><p>Press any key to begin.</p></font>"
+			};
+			experiment.push(distractor_instructions_block);
+
+			var numTrials = delay/(study_time+isi); var distractStim = [];	var distractTotal = 0
+			for(var i = 0; i < numTrials; i++){
+				var num1 = [Math.floor((Math.random() * 9) + 1)];
+				var distractTotal = distractTotal + parseInt(num1);
+				distractStim.push([num1]);
+			};
+
+			for(var dist_idx = 0; dist_idx < numTrials; dist_idx++){
+				var math_task = {
+					type: "study-word",
+					is_html: true,
+					choices: -1,
+					timing_response: study_time,
+					timing_post_trial: isi,
+					prompt: "",
+					timeline: [{stimulus: distractStim[dist_idx]}],
+					data: {
+						phase: 'distractor',
+						stage: (stage_idx + 1),
+						itemPos: (i+1),
+						cond: exptCond,
+					}
+				}
+				experiment.push(math_task);
+			};
+
+			var math_question = {
+				type: "survey-text",
+				questions: ["<font size = '5'>What is the total?</font>"],
+				data: {
+					phase: 'distractor',
+					stage: (stage_idx + 1),
+					itemPos: (i+1),
+					cond: exptCond,
+				}
+			};
+			experiment.push(math_question);
+
+			var math_results = {
+				type: "text",
+				text: ["<p><font size = '5'>The total was " + distractTotal + ".</p> <p>Press any key to continue.</font></p>"],
+				data: {
+					phase: 'distractor',
+					stage: (stage_idx + 1),
+					itemPos: (i+1),
+					cond: exptCond,
+				}
+			};
+			experiment.push(math_results);
+			break;
+			
+			case 5:
+			var palmer_instructions_block = {
+				type: "text",
+				text: "<font size = '5'><p>For this next task, you will briefly study a pattern and attempt to replicate it as closely as possible.</p><p>On each trial you will see a set of circles, some of which are connected by line segments. The image will disappear and a new set of circles without the line segments will appear. Your job is to reconstruct the original image to the best of your ability. To create line segments click on two adjacent circles.</p><p>Press any key to begin.</p></font>"
+			};
+			experiment.push(palmer_instructions_block);
+
+			var segmentTrials = jsPsych.randomization.shuffle([3,3,3,3,6,6,6,6,9,9,9,9]);
+			for(i = 0; i < num_distract; i++){
+				var square_size = 3; // number of rows and columns
+			  	var grid_spacing = 75; // pixels
+			  	var circle_size = 20; // radius in pixels
+			  	// var configuration = [0,1,0,0,1,1,0,0,1,1,0,0,1,0,0,0,1,0,0,1]; // see definition above
+			  	var nRows = square_size;
+			  	var nCols = square_size;
+			  	var nSegments = segmentTrials[i];
+			  	var configuration = jsPsych.randomization.shuffle(palmerStimGen(nRows, nCols, nSegments));
+			  	
+			  	var stimulus = jsPsych.plugins.palmer.generate_stimulus(square_size, grid_spacing, circle_size, configuration);
+
+				// show stimulus using single-stim plugin
+				var palmer_stim_block = {
+				  	type: 'single-stim',
+				  	stimulus: stimulus,
+				  	is_html: true,
+				  	timing_response: 2000,
+				  	response_ends_trial: false,
+   					data: {
+						phase: 'palmer_task',
+						stage: (stage_idx + 1),
+						itemPos: (i+1),
+						num_segments: segmentTrials[i],
+					}
+				};
+				experiment.push(palmer_stim_block);
+
+				var palmer_test_block = {
+				 	type: 'palmer',
+				  	configuration: configuration, //[0,1,0,0,1,1,0,0,1,1,0,0,1,0,0,0,1,0,0,1],
+				   	editable: true,
+				   	show_feedback: true,
+				   	timing_feedback: 2000,
+				   	prompt: '<p>Create the image you just saw. Click two circles to add or remove a line between them. Click submit when you are done.</p>',
+   					data: {
+						phase: 'palmer_task',
+						stage: (stage_idx + 1),
+						itemPos: (i+1),
+						num_segments: segmentTrials[i],
+					}
+			    };
+			    experiment.push(palmer_test_block);
+	        }
+
+			break;
+				  
+		};
+	};
+			
+
+			var environment_question = [
+			["<p><font size = '5'>What is your level of familiarity with these materials?</font></p><p>1: Not at all / 2: Slightly / 3: Somewhat  /  4: Moderately / 5: Extremely</p>"], 
+			["<p><font size = '5'>What is the noise level in your environment?</font></p><p>1: Very Quiet / 2: Quiet / 3: Neutral  /  4: Loud / 5: Very Loud</p>"], 
+			["<p><font size = '5'>What device did you use during this experiment?</font></p><p>Laptop / Desktop / Notebook /  Smartphone / Tablet</p>"],
+			["<p><font size = '5'>Did you cheat at all during the experiment? (Yes/No)</font></p>"],
+			["<p><font size = '5'>If you would like to provide any comments about the experiment, please enter them into the space below.</font></p>"]];
+
+			var qa_block = {
+				type: 'survey-text',
+				preamble: ["<font size = 6> Thank you for completing the experiment. Please answer the following questions about the environment in which you completed this session.</font>"],
+				questions: environment_question,
+				data: {phase: 'environment'}
+			};
+			experiment.push(qa_block);
+
+	// var completionCode = mTurkCode(4);
+
+	jsPsych.data.addProperties({
+			subNum: subjNum, //turkInfo.workerId,
+			// cond: exptCond,		
+			timeStamp: utcDate,
+			experiment: 'RP&Strength_E2_FinalCR'
+		});
+
+		// To write to a server, you need to specify a table in the saveMySQL support function (see supportFunctions.js)
+		var save_data_block = {
+			type: 'call-function',
+			timing_post_trial: 0,
+			func: function(){
+				jsPsych.data.addProperties({completed: true}); 
+				// saveCSV("filename.csv", jsPsych.data.dataAsCSV());
+				saveMySQL(jsPsych.data.getData()); //Need to edit table name in function.
+				// jsPsych.data.displayData();
+			}
+		};	
+		experiment.push(save_data_block);
+
+		var debrief_block = {
+			type: 'htmlTurkCode',
+			url: 'debriefing.html',
+			var_text: "<div><center><h3>Please let the experimenter know that you have completed the study.</h3></center></div>" 
+		// var_text: "<div><center><h3>Please put the code below into the box on mTurk to confirm your participation. HITs are approved manually. Most are approved within the hour, but it may take up to 12 hours before approval.</h3><p><font size='15'>"+ completionCode + "</font></p></center></div>"
+	};
+	experiment.push(debrief_block);
+
+	jsPsych.init({
+		display_element: $('#jspsych-target'),
+		show_progress_bar: true,
+		timeline: experiment,
+		on_finish: function(data){
+				// jsPsych.data.displayData();
+				// jsPsych.data.addProperties({completed: true});
+				// saveCSV("filename.csv", jsPsych.data.dataAsCSV());
+				// saveMySQL(jsPsych.data.getData());
+				// jsPsych.data.displayData('csv');
+			}
+		});
+
+	</script>
+
+	</html>
