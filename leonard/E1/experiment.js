@@ -58,17 +58,17 @@ class Experiment {
 
   buildTimeline() {
     if (!this.condition) {
-      var conditions = [
-        "CONDITION_1",
-        "CONDITION_2",
-      ];
+      // var conditions = [
+      //   "CONDITION_1",
+      //   "CONDITION_2",
+      // ];
       
-      //this.condition = conditions[Math.floor(condRand * conditions.length)];
-      this.condition = conditions[order_index];
-      console.log(this.condition);
-      if (this.condition == "CONDITION_1") {
-        this.studyList = jsPsych.randomization.shuffleNoRepeats(this.Order1);
-      } 
+      // //this.condition = conditions[Math.floor(condRand * conditions.length)];
+      // this.condition = conditions[order_index];
+      // console.log(this.condition);
+      // if (this.condition == "CONDITION_1") {
+      //   this.studyList = jsPsych.randomization.shuffleNoRepeats(this.Order1);
+      // } 
       // else if (this.condition == "CONDITION_2") {
       //   console.log("condition2");
       //   this.studyList = jsPsych.randomization.shuffleNoRepeats(this.Order2);
@@ -83,6 +83,7 @@ class Experiment {
       // jsPsych.pluginAPI.preloadImages(
       //   this.studyList.map((item) => item.Picture_Source)
       // );
+      this.studyList = jsPsych.randomization.shuffleNoRepeats(this.Order1);
     }
     //Save Data
     var saveData = {
@@ -342,25 +343,25 @@ class Experiment {
       this.timeline.push(testBlock);
     }*/
 
-    const instructionsDemographics = {
-      type: "pcllab-core",
-      stimuli: [this.instructions["demographics"]],
-      response_count: 0,
-      show_button: true,
-      button_text: "Next",
-      minimum_time: 5000,
-    };
-    this.timeline.push(instructionsDemographics);
+    // const instructionsDemographics = {
+    //   type: "pcllab-core",
+    //   stimuli: [this.instructions["demographics"]],
+    //   response_count: 0,
+    //   show_button: true,
+    //   button_text: "Next",
+    //   minimum_time: 5000,
+    // };
+    // this.timeline.push(instructionsDemographics);
 
-    // Demographics
-    const demographics = {
-      type: "pcllab-form",
-      demographics: true,
-      data: {
-        period: "demographics",
-      },
-    };
-    this.timeline.push(demographics);
+    // // Demographics
+    // const demographics = {
+    //   type: "pcllab-form",
+    //   demographics: true,
+    //   data: {
+    //     period: "demographics",
+    //   },
+    // };
+    // this.timeline.push(demographics);
 
     const instructionsEnd = {
       type: "pcllab-core",
