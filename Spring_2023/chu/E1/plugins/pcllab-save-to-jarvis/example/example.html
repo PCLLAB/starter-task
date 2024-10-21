@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags always come first -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ"
+        crossorigin="anonymous">
+
+    <!-- MDBootstrap -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.3.2/css/mdb.min.css">
+
+    <link rel="stylesheet" href="../../../css/jspsych.css">
+    <link rel="stylesheet" href="../../../css/pcllab-plugins.css">
+
+    <title>pcllab-save-to-jarvis-example</title>
+</head>
+
+<body>
+    <div id="experiment_container" class="container-fluid"></div>
+
+    <!-- SCRIPTS -->
+    <!-- jQuery first, then Bootstrap JS. -->
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+        crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.3.2/js/mdb.min.js"></script>
+
+    <!-- Then jsPsych -->
+    <script src="../../../jspsych.js"></script>
+
+    <!-- Plugins -->
+    <script src="../../pcllab-free-recall-list/plugin.js"></script>
+    <script src="../../pcllab-save-to-jarvis/plugin.js"></script>
+</body>
+
+<script>
+    var free_recall = {
+        type: 'pcllab-free-recall-list',
+        instructions: "These are some instructions",
+        maximum_time: 120000,
+        minimum_time: 3000,
+        show_progress: true,
+        show_instructions: true,
+        word_list: ["jarvis","mongodb","purdue","example"],
+        show_timer: true,
+        track_unsubmitted: true,
+        scroll_list: true,
+        allow_delete: true,
+        exact_response: false,
+        title: 'Free Recall List'
+    };
+
+    var trial = {
+        type: 'pcllab-save-to-jarvis',
+        experiment_id: '5a5573dc2790ce36f88b866d', //get this from the 'Generate' button on the experiment page
+        custom_URL: 'http://localhost:3303' //only specify this parameter if developing locally, otherwise don't include
+    };
+
+    jsPsych.init({
+        display_element: $("div#experiment_container"),
+        timeline: [free_recall,trial],
+        on_finish: function() {
+            jsPsych.data.displayData();
+        }
+    })
+</script>
+
+</html>

@@ -1,0 +1,29 @@
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-6">
+            <h2 class="text-center mb-3"></h2>
+            <div class="card p-3">
+                <form onsubmit="event.preventDefault()" data-toggle="validator" class="md-form">
+
+                    <h4>Were any of the words in the pairs you studied unfamiliar to you (i.e., words you did not recognize or whose meaning you do not know)?</h4>
+                    <div class="md-radio md-radio-inline" style="font-size: larger;">
+
+                        <input type="radio" id="rb1" name="unfamiliar" value="no" checked>
+                        <label for="rb1" class="radio-inline">&nbsp;No</label>&nbsp;&nbsp;&nbsp;
+
+                        <input type="radio" id="rb2" name="unfamiliar" value="yes">
+                        <label for="rb2" class="radio-inline">&nbsp;Yes</label>
+
+                    </div>
+                    <div id="unfamiliar_opt_form" class="form-group" style="display: none">
+                        <h5 id="unfamiliar_opt_header">Which words were unfamiliar to you? (list below if you remember them or leave blank if you do not)</h5>
+                        <input id="unfamiliar_opt" type="text" class="form-control" placeholder="" disabled required>
+                    </div>
+                    <input type="checkbox" id="accept_terms" name="accept_terms" value="0" tabindex="-1" autocomplete="off">
+
+                    <button type="submit" id="continue_btn" class="btn btn-primary btn-lg waves-effect pcllab-button-center">Next</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

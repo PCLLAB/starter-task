@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+<head>
+    <title>My experiment</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="../jspsych-5.0.3/jspsych.js"></script>
+    <link href="../jspsych-5.0.3/css/jspsych.css" rel="stylesheet" type="text/css">
+    <link href="pcllab.css" rel="stylesheet" type="text/css">
+    <script src="../jspsych-5.0.3/plugins/jspsych-text.js"></script>
+    <script src="pcllab-mturk-generate.js"></script>
+
+</head>
+<body>
+    <div class="experiment-container"></div>
+</body>
+
+<script>
+
+    var hello_trial = {
+        type: 'pcllab-mturk-generate',
+    };
+
+    jsPsych.init({
+        display_element: $(".experiment-container"),
+        timeline: [hello_trial ],
+        on_finish: function () {
+            jsPsych.data.displayData();
+        }
+    })
+
+</script>
+</html>

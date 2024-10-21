@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <script>
+      const params = new URLSearchParams(window.location.search)
+      const id = params.get('id')
+      const url = `https://jarvis.psych.purdue.edu/api/v1/experiments/datatemp/624321c3e41ae0642721f8b3/match/${id}` 
+      const assign = async ()=> {
+        const res = await fetch(url);
+        const body = await res.json();
+
+        const studyCondition = body[0][0]["studyCondition"];
+
+        if (studyCondition === "SSS") {
+          window.location.href = `https://jarvis.psych.purdue.edu/api/v1/experiments/assign/624321dae41ae0642721f8b5?&id=` + id
+        }
+        else if (studyCondition === "SST" ){
+          window.location.href = `https://jarvis.psych.purdue.edu/api/v1/experiments/assign/62504ce4aef91650c8cd042a?&id=` + id
+        }
+        else {
+          alert("Something went wrong");
+        }
+      }
+
+      assign();
+    </script>
+  </body>
+</html>

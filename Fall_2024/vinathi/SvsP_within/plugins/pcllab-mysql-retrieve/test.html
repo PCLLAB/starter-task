@@ -1,0 +1,51 @@
+<!doctype html>
+<html>
+<head>
+    <title>My experiment</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="../jspsych-5.0.3/jspsych.js"></script>
+    <link href="../jspsych-5.0.3/css/jspsych.css" rel="stylesheet" type="text/css">
+    <link href="pcllab.css" rel="stylesheet" type="text/css">
+    <script src="../jspsych-5.0.3/plugins/jspsych-text.js"></script>
+    <script src="pcllab-mysql-retrieve.js"></script>
+
+</head>
+<body>
+    <div class="experiment-container"></div>
+</body>
+
+<script>
+
+    var hello_trial = {
+        type: 'pcllab-mysql-retrieve',
+        workerId: 'worker1'
+    }
+
+    var ifTrial = {
+        type: 'text',
+        text: "value for val1 for workerId with id worker1 is 1",
+
+    }
+
+
+    var ifNode = {
+        timeline: [ifTrial],
+        conditional_function: function () {
+            var retrieveTrials = jsPsych.data.getTrialsOfType('pcllab-mysql-retrieve');
+            return retrieveTrials[0]['val1'] == 1;
+        }
+    }
+
+    var after2 = {
+        type: 'text',
+        text: "value for val1 for workerId with id worker1 is not 1",
+    }
+
+    jsPsych.init({
+        display_element: $(".experiment-container"),
+        timeline: [ hello_trial , ifNode, after2],
+
+    })
+
+</script>
+</html>

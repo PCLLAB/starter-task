@@ -1,0 +1,37 @@
+<!doctype html>
+<html>
+<head>
+    <title>My experiment</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="../jspsych-5.0.3/jspsych.js"></script>
+    <link href="../jspsych-5.0.3/css/jspsych.css" rel="stylesheet" type="text/css">
+    <link href="pcllab.css" rel="stylesheet" type="text/css">
+    <script src="study-items.js"></script>
+
+</head>
+<body>
+    <div class="experiment-container"></div>
+</body>
+
+<script>
+
+    var hello_trial = {
+        type: 'study-items',
+        frame_time: 4000,
+        blank_time: 1000,
+        stimuli: [
+            ['word1','word2'],
+            ['word3', 'img/test1.png'],
+            ['img/test2.png','word3'],
+            'img/test3.png',
+            ['img/test4.png','img/test1.png','img/test5.JPG']
+        ]
+    }
+
+    jsPsych.init({
+        display_element: $(".experiment-container"),
+        timeline: [ hello_trial ]
+    })
+
+</script>
+</html>

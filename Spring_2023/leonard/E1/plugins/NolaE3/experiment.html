@@ -1,0 +1,76 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Recall During Reading E3</title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+        <script src="js/jspsych.js"></script>
+
+        <!-- Style sheets -->
+        <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
+        <link href="css/jspsych.css" rel="stylesheet" type="text/css">
+        <link href="css/pcllab.css" rel="stylesheet" type="text/css">
+
+        <!-- Plugins -->
+        <script src="plugins/pcllab-consent-form.js"></script>
+        <script src="plugins/pcllab-demographics.js"></script>
+        <script src="plugins/pcllab-instructions.js"></script>
+    </head>
+    <body>
+        <div class="experiment-container"></div>
+    </body>
+
+    <script>
+
+        // Get the condition from the DB
+
+        // Start page
+        var consent = {
+            type: 'pcllab-consent-form',
+            url: "pages/consent.html"
+        }
+
+        // Demographics
+        var demographics = {
+            type: 'pcllab-demographics'
+        }
+
+        // Instructions
+
+        // Study text
+        // Four different sections. JSON file.
+
+        // var study_section_1 = {
+        //     type: 'pcllab-study-text',
+        //     label: '1' //something here to designate what part of the text to study
+        // }
+        //
+        // var study_section_2 = {
+        //     type: 'pcllab-study-text',
+        //     label: '2' //something here to designate what part of the text to study
+        // }
+        //
+        // var study_section_3 = {
+        //     type: 'pcllab-study-text',
+        //     label: '3' //something here to designate what part of the text to study
+        // }
+        //
+        // var study_section_4 = {
+        //     type: 'pcllab-study-text',
+        //     label: '4' //something here to designate what part of the text to study
+        // }
+
+
+        // Start the experiment
+        jsPsych.init({
+            show_progress_bar: true,
+            display_element: $(".experiment-container"),
+            timeline: [ consent, demographics ],
+            on_finish: function () {
+                jsPsych.data.displayData();
+                // $(".experiment-container").html("finished");
+            }
+        })
+
+    </script>
+</html>

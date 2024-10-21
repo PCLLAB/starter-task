@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+<head>
+    <title>My experiment</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="../jspsych-5.0.3/jspsych.js"></script>
+    <link href="../jspsych-5.0.3/css/jspsych.css" rel="stylesheet" type="text/css">
+    <link href="pcllab.css" rel="stylesheet" type="text/css">
+    <script src="../jspsych-5.0.3/plugins/jspsych-text.js"></script>
+    <script src="pcllab-mysql-save.js"></script>
+
+</head>
+<body>
+    <div class="experiment-container"></div>
+</body>
+
+<script>
+
+    var data_trial = {
+        type: 'text',
+        text: 'hello world'
+    };
+
+    var data2_trial = {
+        type: 'text',
+        text: 'bye world'
+    };
+
+    var data3_trial = {
+        type: 'text',
+        text: 'bye bye world'
+    };
+
+    var hello_trial = {
+        type: 'pcllab-mysql-save',
+        workerId: 'worker1'
+    };
+
+    jsPsych.init({
+        display_element: $(".experiment-container"),
+        timeline: [data_trial, data2_trial, data3_trial, hello_trial ],
+    })
+
+</script>
+</html>

@@ -1,0 +1,13 @@
+{
+  "name": "pcllab-cued-recall",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "@jsdevtools/simplifyify": "^8.0.3",
+    "dragula": "^3.7.2",
+    "simplifyify": "^8.0.3",
+    "string-similarity": "^2.0.0",
+    "uuid4": "^1.1.4"
+  }
+}

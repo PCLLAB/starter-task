@@ -1,0 +1,6 @@
+#trial_container {
+  min-height: calc(93vh - 124px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}

@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+<head>
+    <title>My experiment</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="../jspsych-5.0.3/jspsych.js"></script>
+    <link href="../jspsych-5.0.3/css/jspsych.css" rel="stylesheet" type="text/css">
+    <link href="pcllab.css" rel="stylesheet" type="text/css">
+    <script src="pcllab-instructions.js"></script>
+
+    <!--<script src="instructions.json"></script>-->
+
+</head>
+<body>
+    <div class="experiment-container"></div>
+</body>
+
+<script>
+
+    var hello_trial = {
+        type: 'pcllab-instructions',
+        label: 'General'
+    };
+
+    var second_trial = {
+        type: 'pcllab-instructions',
+        label: 'Recall'
+    };
+
+
+
+    jsPsych.init({
+        display_element: $(".experiment-container"),
+        timeline: [ hello_trial, second_trial ],
+        on_finish: function() {
+            $("div.experiment-container").html("finished");
+        },
+    })
+
+</script>
+</html>
