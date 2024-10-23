@@ -95,13 +95,13 @@ After, the data should be sent to and visible in https://jarvis.psych.purdue.edu
 
 ## Extra practice
 
-If you want more practice you can attempt to many one or more of the following changes:
+If you want more practice you can attempt to make one or more of the following changes:
 
-Increase the font size for the words typed into the text box so that they are the same size as the that appears above the text box.
+- Increase the font size for the words typed into the text box so that they are the same size as the that appears above the text box. (see for example: https://github.com/PCLLAB/RetrievalPractice_AbstractSymbols/tree/main/NonwordCues/E1_2x6_3letter)
 
-Save the correct answer for each math problem presented on each trial individually (instead of as a list).
+- Save the correct answer for each math problem presented on each trial individually, instead of as a list(example: ).
 
-Present the "alternate" word in place of the target during the study task if the response that was typed into the text box is the same as the target. 
+- Present the "alternate" word in place of the target during the study task if the response that was typed into the text box is the same as the target (example: https://github.com/PCLLAB/pretesting-perceptual/tree/main/E1). 
 
 
 
