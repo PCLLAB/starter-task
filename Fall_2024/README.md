@@ -101,7 +101,7 @@ If you want more practice you can attempt to make one or more of the following c
 
 - Save the correct answer for each math problem presented on each trial individually, instead of as a list(example: ).
 
-Present the "alternate" word in place of the target during the study task if the response that was typed into the text box is the same as the target. (See an example here: https://github.com/PCLLAB/pretesting-perceptual)
+- Present the "alternate" word in place of the target during the study task if the response that was typed into the text box is the same as the target. (See an example here: https://github.com/PCLLAB/pretesting-perceptual)
 
 
 
