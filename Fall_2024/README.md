@@ -101,7 +101,7 @@ Increase the font size for the words typed into the text box so that they are th
 
 Save the correct answer for each math problem presented on each trial individually (instead of as a list).
 
-Present the "alternate" word in place of the target during the study task if the response that was typed into the text box is the same as the target. 
+Present the "alternate" word in place of the target during the study task if the response that was typed into the text box is the same as the target. (See an example here: https://github.com/PCLLAB/pretesting-perceptual)
 
 
 
