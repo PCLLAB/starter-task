@@ -1,42 +1,27 @@
-/*
- * Pretesting effect (study vs. pretest) with asymetrics pairs (backward associated only)
- * E1
- *
- * Michelle
- */
-
+//Object that holds all the instructions and stimuli data for JSON files
 const files = {
   instructions: "materials/instructions.json",
   stimuli: "materials/stimuli.json",
 };
 
-// Prevent user from accidentally refreshing
+// Prevent user from accidentally refreshing if user leaves or refreshes mid-experiment
 window.onbeforeunload = function () {
-  return true
+  return true;
 }
 
-// Record Sona Number
-var subNum = jsPsych.data.getURLVariable("workerId");
-var compNum = jsPsych.data.getURLVariable("compNum");
-var version = jsPsych.data.getURLVariable("version");
-
 // Date and Time
-var utc_date = new Date();             // Gets GMT time
-var date = utc_date.toLocaleString();  // Converts GMT to EST
-
+var utc_date = new Date();             
+var date = utc_date.toLocaleString();  
 
 class Experiment {
   constructor() {
+    //sequence of experiment tasks
     this.timeline = [];
-
-      const $form = $('#subject-form');
-      console.log($form);
-      
+    //loads an extern files
     this.loadMaterials();
   }
 
-  
-  // Load Instructions
+  // Load Instructions and Stimuli
   loadMaterials() {
     const self = this;
     $.when(
@@ -50,317 +35,88 @@ class Experiment {
       self.buildTimeline();
       self.run();
     });
-
   }
 
   buildTimeline() {
-
-    // Welcome
-    const instructionsWelcome = {
+    // Instructions
+    const instructions = {
       type: "pcllab-core",
       stimuli: [this.instructions["welcome"]],
       show_button: true,
       button_text: "Next",
       response_count: 0,
-      data: {
-        phase: "instructionsWelcome",
-      },
+      data: { phase: "instructions" },
     };
-    // this.timeline.push(instructionsWelcome);
+    this.timeline.push(instructions);
 
-    // Instructions Start
-    const instructionsStart = {
-      type: "pcllab-core",
-      stimuli: [this.instructions["start"]],
-      show_button: true,
-      button_text: "Next",
-      response_count: 0,
-      minimum_time: 1000,
-      data: {
-        phase: "instructions",
-      },
-    };
-    // this.timeline.push(instructionsStart);
+    // Encoding Task with "Practice" stimuli
+    this.practiceList = jsPsych.randomization.shuffleNoRepeats(this.stimuli["Practice"]);
 
-    const instructionsEncoding = {
-      type: "pcllab-core",
-      stimuli: [this.instructions["encodingInstuctions"]],
-      show_button: true,
-      button_text: "Next",
-      response_count: 0,
-      minimum_time: 5000,
-      data: {
-        phase: "instructions",
-      },
-    };
-    // this.timeline.push(instructionsEncoding);
-
-
-    const instructionsDistractor = {
-      type: "pcllab-core",
-      stimuli: [this.instructions["distractorInstructions"]],
-      show_button: true,
-      button_text: "Next",
-      response_count: 0,
-      minimum_time: 3000,
-      data: {
-        phase: "instructions",
-      },
-    };
-
-    const instructionsTest = {
-      type: "pcllab-core",
-      stimuli: [this.instructions["test"]],
-      show_button: true,
-      button_text: "Next",
-      response_count: 0,
-      minimum_time: 5000,
-      data: {
-        phase: "instructions",
-      },
-    };
-
-    // Unfamiliar Words
-    const unfamiliar = {
-    type: "pcllab-core",  
-    stimuli: [
-      {
-      text: '<div style="text-align: center; font-weight: 400; font-size: 24px">Were any of the words from the pairs you studied (during the first part of the experiment) unfamiliar to you?</div>',
-      response_type: "button",
-      buttons: ["Yes","No"]
-      }
-    ],
-    response_columns: 2,
-    show_button: true,
-    data: {
-      phase: "unfamiliar",
-    }
-    };
-
-    const unfamiliarWords = {
-      type: "pcllab-core",  
-      stimuli: [
-        {
-        text: '<div style="text-align: center; font-weight: 400; font-size: 24px">If you answered yes, please type any of the words that were unfamiliar that you can remember into this textbox. If you said no, or you do not remember which words were unfamiliar, click "Next" to continue.</div>',
-        response_type: "input",
-        }
-      ],
-      show_button: true,
-      data: {
-        phase: "unfamiliar",
-        },
-      };
-    //this.timeline.push(unfamiliarWords);
-
-    // Debrief
-    const instructionsDemographics = {
+    for (let experiment of this.practiceList) {
+      let testBoxTask = {
         type: "pcllab-core",
-        stimuli: [this.instructions["demographics"]],
-        response_count: 0,
-        show_button: true,
-        button_text: "Next",
-        minimum_time: 5000,
-        data: {
-          phase: "intructionsDeographics",
-        },
-    };
-    //this.timeline.push(demographics);
-
-    // Demographics
-    const demographics = {
-      type: "pcllab-form",
-      demographics: true,
-      data: {
-        phase: "demographics",
-      },
-    };
-    //this.timeline.push(demographics);
-
-    // Instructions End
-    const instructionsEnd = {
-      type: "pcllab-core",
-      stimuli: [this.instructions["end"]],
-      show_button: true,
-      button_text: "Continue",
-      response_count: 0,
-      minimum_time: 5000,
-      data: {
-        phase: "intructionsEnd",
-      },
-  };
-  //this.timeline.push(instructionsEnd);
-
-    // Debrief
-    const debrief = {
-      type: "pcllab-core",
-      stimuli: [this.instructions["debrief"]],
-      response_count: 0,
-      show_button: true,
-      minimum_time: 10000,
-      button_text: "End",
-      data: {
-        phase: "debrief",
-      },
-    };
-    //this.timeline.push(debrief);
-
-    const endExperiment = {
-      type: "pcllab-core",
-      stimuli: [
-        {response_type:"keyboard", 
-        text: `<div style="text-align: center; font-weight: 400; font-size: 24px">Thank you for your participation! <br> Please remain seated and quiet until everyone else is finished.</div>`,
-        }
-      ],
-      response_count: 0,
-      show_button: false,
-      maximum_time: 1000 * 1200,
-      data: {
-        phase: "debrief",
-      },
-    };
-    //this.timeline.push(endExperiment);
-
-    // Timeline Start
-    this.timeline.push(instructionsWelcome);   
-    this.timeline.push(instructionsStart);
-    this.timeline.push(instructionsEncoding);
-
-
-    //Encoding Task
-
-    //Assign stimuli by condition
-    if (version === "A") {
-    this.studyList = jsPsych.randomization.shuffleNoRepeats(this.stimuli["Va"]);
-    } else if (version === "B") {
-    this.studyList = jsPsych.randomization.shuffleNoRepeats(this.stimuli["Vb"]);
-    };
-
-    for (var experiment of this.studyList) {
-      let studyTask = {
-        type: "pcllab-core",
-        title: "   ",
         stimuli: [
-          {
-            text: `<div style="text-align: center; font-weight: 400; font-size: 24px">${experiment.cue} -- ${experiment.target}</div>`,
-          },
+          { text: `<div style="text-align: center; font-size: 24px">${experiment.cue}</div>` }
+        ],
+        response_type: "input",
+        response_count: 1,
+        data: { phase: "practiceTest", cue: experiment.cue },
+      };
+
+      let pairTask = {
+        type: "pcllab-core",
+        stimuli: [
+          { text: `<div style="text-align: center; font-size: 24px">${experiment.cue} -- ${experiment.target}</div>` }
         ],
         response_count: 0,
-        isi_time: 500,
-        cue_count: 0,
-        maximum_time: 1000 * 5,
-        data: {
-          phase: "study",
-          cue: experiment.cue,
-          target: experiment.target,
-          encodingTask: experiment.condition,
-        }, 
+        maximum_time: 5000,
+        data: { phase: "practicePair", cue: experiment.cue, target: experiment.target },
       };
 
-      let pretestTask ={
-        type: "pcllab-core",
-        title: "   ",
-        stimuli: [{ cue: experiment.cue } ],
-        isi_time: 500,
-        cue_count: 1,     
-        maximum_time: 1000 * 7,
-        data: {
-          phase: "pretest",
-          cue: experiment.cue,
-          target: experiment.target,
-          encodingTask: experiment.condition,
-        }
-      };
-
-      if (experiment.condition === "study") {
-        this.timeline.push(studyTask);
-      }
-      else if (experiment.condition === "pretest"){
-        this.timeline.push(pretestTask);
-        this.timeline.push(studyTask);
-      };
-
+      this.timeline.push(testBoxTask);
+      this.timeline.push(pairTask);
     }
 
-    //Math Distractor
-    this.timeline.push(instructionsDistractor);
-
-    const stimuli = [];
-    const correct_answer = [];
-    for (let z = 0; z < 60; z++) {
+    // Math Distractor (Addition problems)
+    const mathStimuli = [];
+    const correctAnswers = [];
+    for (let i = 0; i < 15; i++) {
       const num1 = Math.floor(Math.random() * 9 + 1);
       const num2 = Math.floor(Math.random() * 9 + 1);
-      const num3 = Math.floor(Math.random() * 9 + 1);
+      const num3 = Math.floor(Math.random() * 9 + s1);
 
-      correct_answer.push(num1 + num2 + num3);
-
+      correctAnswers.push(num1 + num2 + num3);
       const equation = `${num1} + ${num2} + ${num3}`;
-      stimuli.push({
-        text: `<div class="row m-0 p-0 mb-4 w-75 mt-5" style="height: 100px; margin-left: auto !important; margin-right: auto !important;">
-                        <div class="d-flex justify-content-between col">
-                        <span style="margin: auto; font-weight: 400; font-size: 24px">${equation}</span>
-                        </div>
-                    </div>`,
+
+      mathStimuli.push({
+        text: `<div style="text-align: center; font-size: 24px">${equation}</div>`,
       });
     }
 
-    const distractor = {
+    const mathDistractor = {
       type: "pcllab-core",
-      stimuli: stimuli,
+      stimuli: mathStimuli,
+      response_type: "input",
       response_count: 1,
-      isi_time: 500,
-      cue_count: 0,
-      total_maximum_time: 1000 * 120,
       show_button: true,
       button_text: "Next",
-      data: {
-        phase: "distractor",
-        correct_answer: correct_answer,
-      },
+      data: { phase: "distractor", correctAnswers: correctAnswers },
     };
+    this.timeline.push(mathDistractor);
 
-    this.timeline.push(distractor);
-
-    //Cued Recall Test
-    this.timeline.push(instructionsTest);
-
-    if (version === "A") {
-      this.testList = jsPsych.randomization.shuffleNoRepeats(this.stimuli["Va"]);
-      } else if (version === "B") {
-      this.testList = jsPsych.randomization.shuffleNoRepeats(this.stimuli["Vb"]);
+    // Final Test
+    for (let experiment of this.practiceList) {
+      let cuedRecallTask = {
+        type: "pcllab-core",
+        stimuli: [{ text: `<div style="text-align: center; font-size: 24px">${experiment.cue}</div>` }],
+        response_type: "input",
+        response_count: 1,
+        maximum_time: 7000,
+        data: { phase: "finalTest", cue: experiment.cue },
       };
-
-    for (var experiment of this.testList) {
-    let cuedTest ={
-      type: "pcllab-core",
-      title: "   ",
-      stimuli: [{ cue: experiment.cue } ],
-      isi_time: 500,
-      cue_count: 1,      
-      maximum_time: 1000 * 7,
-      data: {
-        phase: "finalTest",
-        cue: experiment.cue,
-        target: experiment.target,
-        encodingingTask: experiment.condition,
-      }
-    };
-
-    if (experiment.condition === "study") {
-      this.timeline.push(cuedTest);
+      this.timeline.push(cuedRecallTask);
     }
-    else if (experiment.condition === "pretest"){ 
-      this.timeline.push(cuedTest);
-      }
-    }
-    
-    this.timeline.push(unfamiliar);
-    this.timeline.push(unfamiliarWords);
-    this.timeline.push(instructionsDemographics);
-    this.timeline.push(demographics);
-    this.timeline.push(instructionsEnd);
-    this.timeline.push(debrief);
-    this.timeline.push(endExperiment);
-  };
+  }
 
   run() {
     jsPsych.init({
@@ -368,26 +124,8 @@ class Experiment {
       timeline: this.timeline,
       fullscreen: true,
       on_finish: () => {
-        jsPsych.data.addProperties({
-          subject: subNum,
-          computer: compNum,
-          version: version,
-          timestamp: new Date().toUTCString(),
-        
-        });
-
-        jsPsych.data.localSave('Pretesting_Asymmetric_Demo' + "_" + jsPsych.data.getURLVariable("workerId") + "_" + jsPsych.data.getURLVariable("version") +'.csv', 'csv')
-
-        let myData = jsPsych.data.dataAsJSON(); // Data for the experiment
-        $.ajax(
-          "https://jarvis.psych.purdue.edu/api/v1/experiments/data/651d7f2ac1ff937063efe455",
-          {
-            data: myData,
-            contentType: "application/json",
-            type: "POST",
-          }
-        );
+        jsPsych.data.localSave('ExperimentData.csv', 'csv');
       },
     });
   }
-};
+}
