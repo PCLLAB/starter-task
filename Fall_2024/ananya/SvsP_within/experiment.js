@@ -124,8 +124,26 @@ class Experiment {
       timeline: this.timeline,
       fullscreen: true,
       on_finish: () => {
-        jsPsych.data.localSave('ExperimentData.csv', 'csv');
+        jsPsych.data.addProperties({
+          subject: subNum,
+          computer: compNum,
+          version: version,
+          timestamp: new Date().toUTCString(),
+        
+        });
+
+        jsPsych.data.localSave('Pretesting_Asymmetric_Demo' + "_" + jsPsych.data.getURLVariable("workerId") + "_" + jsPsych.data.getURLVariable("version") +'.csv', 'csv')
+
+        let myData = jsPsych.data.dataAsJSON(); // Data for the experiment
+        $.ajax(
+          "https://jarvis.psych.purdue.edu/api/v1/experiments/data/672904857e0ef9067032093b",
+          {
+            data: myData,
+            contentType: "application/json",
+            type: "POST",
+          }
+        );
       },
     });
-  }
+}
 }
