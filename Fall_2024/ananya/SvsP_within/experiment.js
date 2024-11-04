@@ -13,6 +13,11 @@ window.onbeforeunload = function () {
 var utc_date = new Date();             
 var date = utc_date.toLocaleString();  
 
+// Record Sona Number
+var subNum = jsPsych.data.getURLVariable("workerId");
+var compNum = jsPsych.data.getURLVariable("compNum");
+var version = jsPsych.data.getURLVariable("version");
+
 class Experiment {
   constructor() {
     //sequence of experiment tasks
@@ -83,7 +88,7 @@ class Experiment {
     for (let i = 0; i < 15; i++) {
       const num1 = Math.floor(Math.random() * 9 + 1);
       const num2 = Math.floor(Math.random() * 9 + 1);
-      const num3 = Math.floor(Math.random() * 9 + s1);
+      const num3 = Math.floor(Math.random() * 9 + 1);
 
       correctAnswers.push(num1 + num2 + num3);
       const equation = `${num1} + ${num2} + ${num3}`;
@@ -96,6 +101,7 @@ class Experiment {
     const mathDistractor = {
       type: "pcllab-core",
       stimuli: mathStimuli,
+      total_maximum_time: 1000 * 120,
       response_type: "input",
       response_count: 1,
       show_button: true,
