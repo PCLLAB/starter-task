@@ -29,13 +29,13 @@ class Experiment {
   constructor() {
     this.timeline = [];
 
-      const $form = $('#subject-form');
-      console.log($form);
-      
+    const $form = $('#subject-form');
+    console.log($form);
+
     this.loadMaterials();
   }
 
-  
+
   // Load Instructions
   loadMaterials() {
     const self = this;
@@ -122,47 +122,47 @@ class Experiment {
 
     // Unfamiliar Words
     const unfamiliar = {
-    type: "pcllab-core",  
-    stimuli: [
-      {
-      text: '<div style="text-align: center; font-weight: 400; font-size: 24px">Were any of the words from the pairs you studied (during the first part of the experiment) unfamiliar to you?</div>',
-      response_type: "button",
-      buttons: ["Yes","No"]
+      type: "pcllab-core",
+      stimuli: [
+        {
+          text: '<div style="text-align: center; font-weight: 400; font-size: 24px">Were any of the words from the pairs you studied (during the first part of the experiment) unfamiliar to you?</div>',
+          response_type: "button",
+          buttons: ["Yes", "No"]
+        }
+      ],
+      response_columns: 2,
+      show_button: true,
+      data: {
+        phase: "unfamiliar",
       }
-    ],
-    response_columns: 2,
-    show_button: true,
-    data: {
-      phase: "unfamiliar",
-    }
     };
 
     const unfamiliarWords = {
-      type: "pcllab-core",  
+      type: "pcllab-core",
       stimuli: [
         {
-        text: '<div style="text-align: center; font-weight: 400; font-size: 24px">If you answered yes, please type any of the words that were unfamiliar that you can remember into this textbox. If you said no, or you do not remember which words were unfamiliar, click "Next" to continue.</div>',
-        response_type: "input",
+          text: '<div style="text-align: center; font-weight: 400; font-size: 24px">If you answered yes, please type any of the words that were unfamiliar that you can remember into this textbox. If you said no, or you do not remember which words were unfamiliar, click "Next" to continue.</div>',
+          response_type: "input",
         }
       ],
       show_button: true,
       data: {
         phase: "unfamiliar",
-        },
-      };
+      },
+    };
     //this.timeline.push(unfamiliarWords);
 
     // Debrief
     const instructionsDemographics = {
-        type: "pcllab-core",
-        stimuli: [this.instructions["demographics"]],
-        response_count: 0,
-        show_button: true,
-        button_text: "Next",
-        minimum_time: 5000,
-        data: {
-          phase: "intructionsDeographics",
-        },
+      type: "pcllab-core",
+      stimuli: [this.instructions["demographics"]],
+      response_count: 0,
+      show_button: true,
+      button_text: "Next",
+      minimum_time: 5000,
+      data: {
+        phase: "intructionsDeographics",
+      },
     };
     //this.timeline.push(demographics);
 
@@ -187,8 +187,8 @@ class Experiment {
       data: {
         phase: "intructionsEnd",
       },
-  };
-  //this.timeline.push(instructionsEnd);
+    };
+    //this.timeline.push(instructionsEnd);
 
     // Debrief
     const debrief = {
@@ -207,8 +207,9 @@ class Experiment {
     const endExperiment = {
       type: "pcllab-core",
       stimuli: [
-        {response_type:"keyboard", 
-        text: `<div style="text-align: center; font-weight: 400; font-size: 24px">Thank you for your participation! <br> Please remain seated and quiet until everyone else is finished.</div>`,
+        {
+          response_type: "keyboard",
+          text: `<div style="text-align: center; font-weight: 400; font-size: 24px">Thank you for your participation! <br> Please remain seated and quiet until everyone else is finished.</div>`,
         }
       ],
       response_count: 0,
@@ -221,7 +222,7 @@ class Experiment {
     //this.timeline.push(endExperiment);
 
     // Timeline Start
-    this.timeline.push(instructionsWelcome);   
+    this.timeline.push(instructionsWelcome);
     this.timeline.push(instructionsStart);
     this.timeline.push(instructionsEncoding);
 
@@ -230,9 +231,9 @@ class Experiment {
 
     //Assign stimuli by condition
     if (version === "A") {
-    this.studyList = jsPsych.randomization.shuffleNoRepeats(this.stimuli["Va"]);
+      this.studyList = jsPsych.randomization.shuffleNoRepeats(this.stimuli["Va"]);
     } else if (version === "B") {
-    this.studyList = jsPsych.randomization.shuffleNoRepeats(this.stimuli["Vb"]);
+      this.studyList = jsPsych.randomization.shuffleNoRepeats(this.stimuli["Vb"]);
     };
 
     for (var experiment of this.studyList) {
@@ -253,15 +254,15 @@ class Experiment {
           cue: experiment.cue,
           target: experiment.target,
           encodingTask: experiment.condition,
-        }, 
+        },
       };
 
-      let pretestTask ={
+      let pretestTask = {
         type: "pcllab-core",
         title: "   ",
-        stimuli: [{ cue: experiment.cue } ],
+        stimuli: [{ cue: experiment.cue }],
         isi_time: 500,
-        cue_count: 1,     
+        cue_count: 1,
         maximum_time: 1000 * 7,
         data: {
           phase: "pretest",
@@ -274,7 +275,7 @@ class Experiment {
       if (experiment.condition === "study") {
         this.timeline.push(studyTask);
       }
-      else if (experiment.condition === "pretest"){
+      else if (experiment.condition === "pretest") {
         this.timeline.push(pretestTask);
         this.timeline.push(studyTask);
       };
@@ -325,34 +326,34 @@ class Experiment {
 
     if (version === "A") {
       this.testList = jsPsych.randomization.shuffleNoRepeats(this.stimuli["Va"]);
-      } else if (version === "B") {
+    } else if (version === "B") {
       this.testList = jsPsych.randomization.shuffleNoRepeats(this.stimuli["Vb"]);
-      };
-
-    for (var experiment of this.testList) {
-    let cuedTest ={
-      type: "pcllab-core",
-      title: "   ",
-      stimuli: [{ cue: experiment.cue } ],
-      isi_time: 500,
-      cue_count: 1,      
-      maximum_time: 1000 * 7,
-      data: {
-        phase: "finalTest",
-        cue: experiment.cue,
-        target: experiment.target,
-        encodingingTask: experiment.condition,
-      }
     };
 
-    if (experiment.condition === "study") {
-      this.timeline.push(cuedTest);
-    }
-    else if (experiment.condition === "pretest"){ 
-      this.timeline.push(cuedTest);
+    for (var experiment of this.testList) {
+      let cuedTest = {
+        type: "pcllab-core",
+        title: "   ",
+        stimuli: [{ cue: experiment.cue }],
+        isi_time: 500,
+        cue_count: 1,
+        maximum_time: 1000 * 7,
+        data: {
+          phase: "finalTest",
+          cue: experiment.cue,
+          target: experiment.target,
+          encodingingTask: experiment.condition,
+        }
+      };
+
+      if (experiment.condition === "study") {
+        this.timeline.push(cuedTest);
+      }
+      else if (experiment.condition === "pretest") {
+        this.timeline.push(cuedTest);
       }
     }
-    
+
     this.timeline.push(unfamiliar);
     this.timeline.push(unfamiliarWords);
     this.timeline.push(instructionsDemographics);
@@ -373,20 +374,18 @@ class Experiment {
           computer: compNum,
           version: version,
           timestamp: new Date().toUTCString(),
-        
+
         });
 
-        jsPsych.data.localSave('Pretesting_Asymmetric_Demo' + "_" + jsPsych.data.getURLVariable("workerId") + "_" + jsPsych.data.getURLVariable("version") +'.csv', 'csv')
+        jsPsych.data.localSave('Pretesting_Asymmetric_Demo' + "_" + jsPsych.data.getURLVariable("workerId") + "_" + jsPsych.data.getURLVariable("version") + '.csv', 'csv')
 
-        let myData = jsPsych.data.dataAsJSON(); // Data for the experiment
-        $.ajax(
-          "https://jarvis.psych.purdue.edu/api/v1/experiments/data/651d7f2ac1ff937063efe455",
-          {
-            data: myData,
-            contentType: "application/json",
-            type: "POST",
-          }
-        );
+
+        const myData = experimentData // Data for the experiment
+        $.ajax('https://jarvis.psych.purdue.edu/api/v1/experiments/data/6739b320201d92b32f491134', {
+          data: JSON.stringify(myData),
+          contentType: 'application/json',
+          type: 'POST'
+        })
       },
     });
   }
